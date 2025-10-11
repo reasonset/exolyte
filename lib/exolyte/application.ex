@@ -11,6 +11,10 @@ defmodule Exolyte.Application do
       ExolyteWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:exolyte, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Exolyte.PubSub},
+      {Registry, keys: :unique, name: ChatlogRegistry},
+      {DynamicSupervisor, strategy: :one_for_one, name: ChatlogSupervisor},
+      {Exolyte.DB, []},
+
       # Start a worker by calling: Exolyte.Worker.start_link(arg)
       # {Exolyte.Worker, arg},
       # Start to serve requests, typically the last entry

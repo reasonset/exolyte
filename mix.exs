@@ -5,7 +5,7 @@ defmodule Exolyte.MixProject do
     [
       app: :exolyte,
       version: "0.1.0",
-      elixir: "~> 1.15",
+      elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -50,7 +50,8 @@ defmodule Exolyte.MixProject do
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       {:cubdb, "~> 2.0.2"},
-      {:bcrypt_elixir, "~> 3.3.2"}
+      {:bcrypt_elixir, "~> 3.3"},
+      {:uuid, "~> 1.1"}
     ]
   end
 
