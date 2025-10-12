@@ -13,8 +13,11 @@ config :exolyte, ExolyteWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "21rcT6eDBgzXUbFZQ1hu9Mc3Mh6PadqP/n7nmwU/YD6JTgIwrCD3rKZk8TQQ8kjf",
-  watchers: []
+  secret_key_base: "eRFS7Pym0cjKTjP0TOezXfcGlqWOlG7kF3ovKU//uLTgg1pon/Mv9Hg6Vf1WNYfZ",
+  watchers: [
+    esbuild: {Esbuild, :install_and_run, [:exolyte, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:exolyte, ~w(--watch)]}
+  ]
 
 # ## SSL Support
 #
@@ -39,6 +42,17 @@ config :exolyte, ExolyteWeb.Endpoint,
 # configured to run both http and https servers on
 # different ports.
 
+# Watch static and templates for browser reloading.
+config :exolyte, ExolyteWeb.Endpoint,
+  live_reload: [
+    web_console_logger: true,
+    patterns: [
+      ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/gettext/.*(po)$",
+      ~r"lib/exolyte_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$"
+    ]
+  ]
+
 # Enable dev routes for dashboard and mailbox
 config :exolyte, dev_routes: true
 
@@ -51,6 +65,14 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+config :phoenix_live_view,
+  # Include debug annotations and locations in rendered markup.
+  # Changing this configuration will require mix clean and a full recompile.
+  debug_heex_annotations: true,
+  debug_attributes: true,
+  # Enable helpful, but potentially expensive runtime checks
+  enable_expensive_runtime_checks: true
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false

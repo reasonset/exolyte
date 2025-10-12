@@ -7,7 +7,7 @@ defmodule ExolyteWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_exolyte_key",
-    signing_salt: "7qHbjHB0",
+    signing_salt: "LBFYik7c",
     same_site: "Lax"
   ]
 
@@ -29,6 +29,8 @@ defmodule ExolyteWeb.Endpoint do
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
+    socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
+    plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
   end
 

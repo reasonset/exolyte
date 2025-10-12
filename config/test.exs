@@ -4,7 +4,7 @@ import Config
 # you can enable the server option below.
 config :exolyte, ExolyteWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "0kx5il/jiohrDJhmjhoyhVcKMVmTXcPtEZrKyyu9RqIvShWBnc7ttl1GX0bztmBL",
+  secret_key_base: "kX9S/k1K96jEphzx45hzchXNCqx0ADtSbW6L/oUXOUTUDVKK8Vjag4afYkvWeJ3R",
   server: false
 
 # In test we don't send emails
@@ -18,3 +18,7 @@ config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Enable helpful, but potentially expensive runtime checks
+config :phoenix_live_view,
+  enable_expensive_runtime_checks: true

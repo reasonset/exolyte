@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title><%= assigns[:page_title] || "Exolyte" %></title>
+    <link rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")} />
+
+  </head>
+  <body>
+    <%= @inner_content %>
+  </body>
+</html>

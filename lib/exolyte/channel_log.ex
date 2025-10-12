@@ -53,19 +53,26 @@ defmodule Exolyte.ChannelLog do
     updated_log
   end
 
-  def deliver_log(channel_id, :latest) do
+  def deliver_log(channel_id, log_index, user_id) do
     case Exolyte.ChannelDB.get_channel(channel_id) do
-      nil -> {:error, :channel_not_found}
-      %{latest: latest} -> deliver_log(channel_id, latest)
+      nil ->
+        {:error, :channel_not_found}
+
+      # %{members: members, latest: latest} = channel ->
+      %{members: members, latest: latest} ->
+        if user_id in members do
+          index = if log_index == :latest, do: latest, else: log_index
+          path = Path.join([@base_dir, channel_id, "collection-#{index}.json"])
+
+          if File.exists?(path) do
+            {:ok, path}
+          else
+            {:error, :log_not_found}
+          end
+        else
+          {:error, :unauthorized}
+        end
     end
   end
 
-  def deliver_log(channel_id, log_index) do
-    path = Path.join([@base_dir, channel_id, "collection-#{log_index}.json"])
-    if File.exists?(path)
-      {:ok, path}
-    else
-      {:error, :log_not_found}
-    end
-  end
 end

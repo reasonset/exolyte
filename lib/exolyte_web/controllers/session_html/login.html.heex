@@ -1,0 +1,21 @@
+<form method="post" action="/login" class="card bg-base-100 shadow-xl p-6 space-y-4">
+  <h2 class="text-2xl font-bold text-center"><%= gettext("Log in") %></h2>
+
+  <label class="form-control w-full">
+    <div class="label">
+      <span class="label-text"><%= gettext("User ID") %></span>
+    </div>
+    <input name="userid" class="input input-bordered w-full" />
+  </label>
+
+  <label class="form-control w-full">
+    <div class="label">
+      <span class="label-text"><%= gettext("Password") %></span>
+    </div>
+    <input type="password" name="password" class="input input-bordered w-full" />
+  </label>
+
+  <button type="submit" class="btn btn-primary w-full"><%= gettext("Log in") %></button>
+</form>
+
+<.flash kind={:error} flash={@flash} />
