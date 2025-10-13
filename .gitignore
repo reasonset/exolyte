@@ -12,3 +12,4 @@ erl_crash.dump
 /priv/reset_link
 /priv/static/assets
 logs
+/site_local

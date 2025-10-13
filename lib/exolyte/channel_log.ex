@@ -1,6 +1,6 @@
 defmodule Exolyte.ChannelLog do
   @base_dir "logs"
-  @threshold 200
+  @threshold 50
 
   defp initial_collection(index) do
     now = DateTime.utc_now()
