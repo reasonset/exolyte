@@ -1,0 +1,18 @@
+[Unit]
+Description=Exolyte web chat app prototype
+After=network.target
+
+[Install]
+WantedBy=default.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/exolyte
+# You should change SECRET_KEY_BASE
+# Create with mix phx.gen.secret
+Environment=SECRET_KEY_BASE=mjHkEmp7Wys69V00HNkqsEzj2kSz4fAC2UTNdFjasHYfE7DU58BuqtPxm47XeYzJ MIX_ENV=prod
+ExecStart=/usr/bin/mix phx.server
+User=http
+Group=http
+UMask=022
+Restart=always

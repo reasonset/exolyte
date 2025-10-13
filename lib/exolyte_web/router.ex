@@ -30,23 +30,27 @@ defmodule ExolyteWeb.Router do
     post "/login", SessionController, :create
     get "/reset/:link_uuid", UserController, :show
     post "/reset/:link_uuid", UserController, :reset
+    get "/not_found", ErrorController, :notfound
+    get "/", PageController, :home
   end
 
   scope "/", ExolyteWeb do
     pipe_through [:browser, :authenticated]
 
-    get "/", PageController, :home
   end
 
   live_session :default, on_mount: ExolyteWeb.LiveAuth do
     pipe_through [:browser]
 
     live "/mypage", ExolyteWeb.UserLive.Show
+    live "/channel/:channel_id", ExolyteWeb.ChannelLive
   end
 
   # Other scopes may use custom stacks.
   scope "/api", ExolyteWeb do
-    pipe_through :api
+    pipe_through [:api, :authenticated]
+
+    # get "/log/:channel_id/:index", ExolyteWeb.ChannelLogController, :show
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

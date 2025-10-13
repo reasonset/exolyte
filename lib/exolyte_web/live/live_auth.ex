@@ -12,7 +12,9 @@ defmodule ExolyteWeb.LiveAuth do
 
       user_id ->
         user = Exolyte.UserDB.get_user(user_id)
-        {:cont, Phoenix.Component.assign(socket, :current_user, user)}
+        {:cont, socket
+        |> assign(:current_user, user)
+        |> assign(:user_id, user_id)}
     end
   end
 end

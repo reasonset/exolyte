@@ -1,10 +1,11 @@
 defmodule Exolyte.ChannelLog do
   @base_dir "logs"
-  @threshold 500
+  @threshold 5
 
-  defp initial_collection do
+  defp initial_collection(index) do
     now = DateTime.utc_now
     %{
+      index: index,
       messages: [],
       created_at: DateTime.to_unix(now),
       created_at_iso: DateTime.to_iso8601(now)
@@ -17,7 +18,7 @@ defmodule Exolyte.ChannelLog do
 
     File.write!(
       Path.join(dir, "collection-1.json"),
-      Jason.encode!(initial_collection(), pretty: true)
+      Jason.encode!(initial_collection(1), pretty: true)
     )
   end
 
@@ -46,11 +47,11 @@ defmodule Exolyte.ChannelLog do
     if length(updated_log["messages"]) >= @threshold do
       next = latest + 1
       new_path = Path.join([@base_dir, channel_id, "collection-#{next}.json"])
-      File.write!(new_path, Jason.encode!(initial_collection(), pretty: true))
+      File.write!(new_path, Jason.encode!(initial_collection(next), pretty: true))
       Exolyte.ChannelDB.update_channel(channel_id, %{latest: next})
     end
 
-    updated_log
+    message
   end
 
   def deliver_log(channel_id, log_index, user_id) do
@@ -58,9 +59,9 @@ defmodule Exolyte.ChannelLog do
       nil ->
         {:error, :channel_not_found}
 
-      # %{members: members, latest: latest} = channel ->
-      %{members: members, latest: latest} ->
-        if user_id in members do
+      # %{users: users, latest: latest} = channel ->
+      %{users: users, latest: latest} ->
+        if user_id in users do
           index = if log_index == :latest, do: latest, else: log_index
           path = Path.join([@base_dir, channel_id, "collection-#{index}.json"])
 

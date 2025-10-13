@@ -65,7 +65,9 @@ defmodule Exolyte.MixProject do
       {:bandit, "~> 1.5"},
       {:cubdb, "~> 2.0.2"},
       {:bcrypt_elixir, "~> 3.3"},
-      {:uuid, "~> 1.1"}
+      {:uuid, "~> 1.1"},
+      {:earmark, "~> 1.4"},
+      {:html_sanitize_ex, "~> 1.4"}
     ]
   end
 

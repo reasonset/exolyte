@@ -10,4 +10,5 @@ erl_crash.dump
 .elixir_ls/
 /priv/cubdb
 /priv/reset_link
+/priv/static/assets
 logs
