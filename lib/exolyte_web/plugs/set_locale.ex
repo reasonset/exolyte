@@ -6,11 +6,12 @@ defmodule ExolyteWeb.Plugs.SetLocale do
   def call(conn, _opts) do
     locale =
       conn.params["locale"] ||
-      get_session(conn, :locale) ||
-      get_req_header(conn, "accept-language") |> List.first() |> parse_locale() ||
-      "en"
+        get_session(conn, :locale) ||
+        get_req_header(conn, "accept-language") |> List.first() |> parse_locale() ||
+        "en"
 
     Gettext.put_locale(ExolyteWeb.Gettext, locale)
+
     conn
     |> put_session(:locale, locale)
     |> assign(:locale, locale)

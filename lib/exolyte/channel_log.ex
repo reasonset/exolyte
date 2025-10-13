@@ -3,7 +3,8 @@ defmodule Exolyte.ChannelLog do
   @threshold 5
 
   defp initial_collection(index) do
-    now = DateTime.utc_now
+    now = DateTime.utc_now()
+
     %{
       index: index,
       messages: [],
@@ -38,9 +39,10 @@ defmodule Exolyte.ChannelLog do
 
     message = create_message(content)
 
-    updated_log = Map.update!(log, "messages", fn messages ->
-      messages ++ [message]
-    end)
+    updated_log =
+      Map.update!(log, "messages", fn messages ->
+        messages ++ [message]
+      end)
 
     File.write!(path, Jason.encode!(updated_log, pretty: true))
 
@@ -75,5 +77,4 @@ defmodule Exolyte.ChannelLog do
         end
     end
   end
-
 end

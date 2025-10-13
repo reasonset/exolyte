@@ -36,7 +36,6 @@ defmodule ExolyteWeb.Router do
 
   scope "/", ExolyteWeb do
     pipe_through [:browser, :authenticated]
-
   end
 
   live_session :default, on_mount: [ExolyteWeb.LiveAuth, ExolyteWeb.PutLocale] do

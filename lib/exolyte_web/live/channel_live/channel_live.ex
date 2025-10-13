@@ -9,22 +9,23 @@ defmodule ExolyteWeb.ChannelLive do
 
     with channel_info when not is_nil(channel_info) <- Exolyte.ChannelDB.get_channel(channel_id),
          true <- MapSet.member?(channel_info.users, session["user_id"]) do
-      channel_users = channel_info.users
-      |> MapSet.to_list()
-      |> Enum.map(fn user_id ->
-        case Exolyte.UserDB.get_user(user_id) do
-          nil ->
-            nil
+      channel_users =
+        channel_info.users
+        |> MapSet.to_list()
+        |> Enum.map(fn user_id ->
+          case Exolyte.UserDB.get_user(user_id) do
+            nil ->
+              nil
 
-          user ->
-            %{
-              id: user.id,
-              display_name: user.display_name,
-              user_color: user.user_color
-            }
-        end
-      end)
-      |> Enum.reject(&is_nil/1)
+            user ->
+              %{
+                id: user.id,
+                display_name: user.display_name,
+                user_color: user.user_color
+              }
+          end
+        end)
+        |> Enum.reject(&is_nil/1)
 
       user_color_map = Map.new(channel_users, fn u -> {u.id, u.user_color} end)
 
@@ -36,8 +37,7 @@ defmodule ExolyteWeb.ChannelLive do
        |> assign(:channel_user_colors, user_color_map)
        |> assign(:messages, [])
        |> assign(:oldest_index, nil)
-       |> assign(:has_more, false)
-      }
+       |> assign(:has_more, false)}
     else
       _ -> {:ok, push_navigate(socket, to: ~p"/not_found")}
     end
@@ -93,7 +93,8 @@ defmodule ExolyteWeb.ChannelLive do
   end
 
   def handle_info("load_latest", socket) do
-    {:ok, path} = Exolyte.ChannelLog.deliver_log(socket.assigns.channel_id, :latest, socket.assigns.user_id)
+    {:ok, path} =
+      Exolyte.ChannelLog.deliver_log(socket.assigns.channel_id, :latest, socket.assigns.user_id)
 
     {:ok, raw} = File.read(path)
     log = Jason.decode!(raw)
@@ -102,7 +103,7 @@ defmodule ExolyteWeb.ChannelLive do
      socket
      |> assign(:messages, format_messages(log["messages"]))
      |> assign(:oldest_index, log["index"])
-     |> assign(:has_more, (log["index"] > 1))}
+     |> assign(:has_more, log["index"] > 1)}
   end
 
   def handle_info({:new_message, message}, socket) do
@@ -116,7 +117,11 @@ defmodule ExolyteWeb.ChannelLive do
   def handle_event("load_more", _params, socket) do
     if socket.assigns.oldest_index > 1 do
       {:ok, path} =
-        Exolyte.ChannelLog.deliver_log(socket.assigns.channel_id, socket.assigns.oldest_index - 1, socket.assigns.user_id)
+        Exolyte.ChannelLog.deliver_log(
+          socket.assigns.channel_id,
+          socket.assigns.oldest_index - 1,
+          socket.assigns.user_id
+        )
 
       {:ok, raw} = File.read(path)
       log = Jason.decode!(raw)
@@ -160,9 +165,10 @@ defmodule ExolyteWeb.ChannelLive do
   end
 
   defp format_message(message) do
-    message_marked = message["content"]
-    |> HtmlSanitizeEx.basic_html()
-    |> Earmark.as_html!(gfm: true)
+    message_marked =
+      message["content"]
+      |> HtmlSanitizeEx.basic_html()
+      |> Earmark.as_html!(gfm: true)
 
     Map.put(message, "content", message_marked)
   end

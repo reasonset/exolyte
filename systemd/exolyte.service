@@ -10,7 +10,7 @@ Type=simple
 WorkingDirectory=/opt/exolyte
 # You should change SECRET_KEY_BASE
 # Create with mix phx.gen.secret
-Environment=SECRET_KEY_BASE=mjHkEmp7Wys69V00HNkqsEzj2kSz4fAC2UTNdFjasHYfE7DU58BuqtPxm47XeYzJ MIX_ENV=prod
+Environment=SECRET_KEY_BASE=mjHkEmp7Wys69V00HNkqsEzj2kSz4fAC2UTNdFjasHYfE7DU58BuqtPxm47XeYzJ MIX_ENV=prod PORT=8080
 ExecStart=/usr/bin/mix phx.server
 User=http
 Group=http

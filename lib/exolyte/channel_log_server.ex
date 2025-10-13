@@ -15,7 +15,7 @@ defmodule ChannelLogServer do
 
   def handle_call({:update, content}, _from, {channel_id, old_ref}) do
     updated_log = Exolyte.ChannelLog.append_message(channel_id, content)
-    
+
     Process.cancel_timer(old_ref)
     new_ref = schedule_shutdown()
     {:reply, updated_log, {channel_id, new_ref}}

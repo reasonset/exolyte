@@ -8,7 +8,8 @@ import Config
 config :exolyte, ExolyteWeb.Endpoint,
   cache_static_manifest: "priv/static/cache_manifest.json",
   url: [host: "localhost"],
-  check_origin: ["//localhost:4000"]
+  check_origin: ["//localhost:4000"],
+  http: [port: System.get_env("PORT") || 4000]
 
 # Configures Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Req
