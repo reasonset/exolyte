@@ -11,7 +11,9 @@ defmodule ExolyteWeb.Plugs.SetLocale do
       "en"
 
     Gettext.put_locale(ExolyteWeb.Gettext, locale)
-    assign(conn, :locale, locale)
+    conn
+    |> put_session(:locale, locale)
+    |> assign(:locale, locale)
   end
 
   defp parse_locale(header) do

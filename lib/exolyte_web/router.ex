@@ -39,7 +39,7 @@ defmodule ExolyteWeb.Router do
 
   end
 
-  live_session :default, on_mount: ExolyteWeb.LiveAuth do
+  live_session :default, on_mount: [ExolyteWeb.LiveAuth, ExolyteWeb.PutLocale] do
     pipe_through [:browser]
 
     live "/mypage", ExolyteWeb.UserLive.Show

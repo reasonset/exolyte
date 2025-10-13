@@ -22,7 +22,7 @@ msgstr ""
 msgid "Attempting to reconnect"
 msgstr "再接続を試行"
 
-#: lib/exolyte_web/live/user_live/show.ex:30
+#: lib/exolyte_web/live/user_live/show.ex:26
 #, elixir-autogen, elixir-format
 msgid "Channels"
 msgstr "チャンネル"
@@ -61,7 +61,7 @@ msgid "Something went wrong!"
 msgstr "なにかがおかしいです！"
 
 #: lib/exolyte_web/controllers/session_html/login.html.heex:8
-#: lib/exolyte_web/live/user_live/show.ex:26
+#: lib/exolyte_web/live/user_live/show.ex:22
 #, elixir-autogen, elixir-format
 msgid "User ID"
 msgstr "ユーザーID"
@@ -75,3 +75,8 @@ msgstr "インターネットに接続されていません"
 #, elixir-autogen, elixir-format
 msgid "close"
 msgstr "閉じる"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:73
+#, elixir-autogen, elixir-format
+msgid "Chat!"
+msgstr "喋る！"

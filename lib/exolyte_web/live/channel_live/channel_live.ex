@@ -70,7 +70,7 @@ defmodule ExolyteWeb.ChannelLive do
           <div>
             <form phx-submit="send_message" class="flex items-center gap-2" phx-hook="Keybinds" id="ChatForm">
               <textarea id="chat-input" placeholder="Something be good" class="textarea textarea-bordered flex-1 resize-none overflow-y-auto max-h-[30vh] h-auto min-h-0" rows="1" phx-hook="AutoResize" name="content"></textarea>
-              <button class="btn btn-primary" type="submit">Chat!</button>
+              <button class="btn btn-primary" type="submit"><%= gettext("Chat!") %></button>
             </form>
           </div>
         </div>
@@ -150,7 +150,7 @@ defmodule ExolyteWeb.ChannelLive do
   defp format_time(unix_ts) do
     unix_ts
     |> DateTime.from_unix!()
-    |> Calendar.strftime("%H:%M")
+    |> Calendar.strftime("%x %H:%M")
   end
 
   defp format_messages(messages) do

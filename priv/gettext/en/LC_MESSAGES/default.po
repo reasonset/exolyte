@@ -22,7 +22,7 @@ msgstr ""
 msgid "Attempting to reconnect"
 msgstr ""
 
-#: lib/exolyte_web/live/user_live/show.ex:30
+#: lib/exolyte_web/live/user_live/show.ex:26
 #, elixir-autogen, elixir-format
 msgid "Channels"
 msgstr ""
@@ -61,7 +61,7 @@ msgid "Something went wrong!"
 msgstr ""
 
 #: lib/exolyte_web/controllers/session_html/login.html.heex:8
-#: lib/exolyte_web/live/user_live/show.ex:26
+#: lib/exolyte_web/live/user_live/show.ex:22
 #, elixir-autogen, elixir-format
 msgid "User ID"
 msgstr ""
@@ -74,4 +74,9 @@ msgstr ""
 #: lib/exolyte_web/components/core_components.ex:74
 #, elixir-autogen, elixir-format
 msgid "close"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:73
+#, elixir-autogen, elixir-format
+msgid "Chat!"
 msgstr ""
