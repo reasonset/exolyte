@@ -11,7 +11,7 @@ defmodule ExolyteWeb.Plugs.RequireAuth do
         |> halt()
 
       user_id ->
-        assign(conn, :current_user, user_id)
+        assign(conn, :user_id, user_id)
     end
   end
 end

@@ -9,4 +9,5 @@ erl_crash.dump
 /config/*.secret.exs
 .elixir_ls/
 /priv/cubdb
+/priv/reset_link
 logs

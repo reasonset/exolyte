@@ -20,58 +20,58 @@ msgstr ""
 #: lib/exolyte_web/components/layouts.ex:111
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
-msgstr "再接続を試行"
+msgstr ""
 
 #: lib/exolyte_web/live/user_live/show.ex:30
 #, elixir-autogen, elixir-format
 msgid "Channels"
-msgstr "チャンネル"
+msgstr ""
 
 #: lib/exolyte_web/controllers/session_html/login.html.heex:2
 #: lib/exolyte_web/controllers/session_html/login.html.heex:20
 #, elixir-autogen, elixir-format
 msgid "Log in"
-msgstr "ログイン"
+msgstr ""
 
 #: lib/exolyte_web/controllers/session_controller.ex:19
 #, elixir-autogen, elixir-format
 msgid "Login failed."
-msgstr "ログインに失敗しました。"
+msgstr ""
 
 #: lib/exolyte_web/live/live_auth.ex:10
 #, elixir-autogen, elixir-format
 msgid "Login required."
-msgstr "ログインしてください"
+msgstr ""
 
 #: lib/exolyte_web/controllers/session_html/login.html.heex:15
 #: lib/exolyte_web/controllers/user_html/reset.html.heex:8
 #, elixir-autogen, elixir-format
 msgid "Password"
-msgstr "パスワード"
+msgstr ""
 
 #: lib/exolyte_web/controllers/user_html/reset.html.heex:2
 #: lib/exolyte_web/controllers/user_html/reset.html.heex:13
 #, elixir-autogen, elixir-format
 msgid "Reset Password"
-msgstr "パスワードをリセット"
+msgstr ""
 
 #: lib/exolyte_web/components/layouts.ex:106
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
-msgstr "なにかがおかしいです！"
+msgstr ""
 
 #: lib/exolyte_web/controllers/session_html/login.html.heex:8
 #: lib/exolyte_web/live/user_live/show.ex:26
 #, elixir-autogen, elixir-format
 msgid "User ID"
-msgstr "ユーザーID"
+msgstr ""
 
 #: lib/exolyte_web/components/layouts.ex:94
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
-msgstr "インターネットに接続されていません"
+msgstr ""
 
 #: lib/exolyte_web/components/core_components.ex:74
 #, elixir-autogen, elixir-format
 msgid "close"
-msgstr "閉じる"
+msgstr ""

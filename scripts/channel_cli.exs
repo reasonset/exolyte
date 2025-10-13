@@ -32,6 +32,10 @@ case System.argv() do
     ChannelDB.update_channel(id, %{description: description})
     IO.puts("Updated channel description of #{id}")
 
+  ["has", user_id] ->
+    channels = ChannelDB.channels_for_user(user_id)
+    IO.inspect(channels)
+
   ["list"] ->
     ChannelDB.list_channels()
     |> Enum.each(fn {{:channel, id}, data} ->

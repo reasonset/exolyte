@@ -7,12 +7,12 @@ defmodule ExolyteWeb.SessionController do
     render(conn, :login)
   end
 
-  def create(conn, %{"userid" => userid, "password" => password}) do
-    case Exolyte.UserDB.authenticate(userid, password) do
+  def create(conn, %{"user_id" => user_id, "password" => password}) do
+    case Exolyte.UserDB.authenticate(user_id, password) do
       {:ok, user_id} ->
         conn
         |> put_session(:user_id, user_id)
-        |> redirect(to: "/")
+        |> redirect(to: "/mypage")
 
       {:error, _reason} ->
         conn

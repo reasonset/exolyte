@@ -22,6 +22,10 @@ case System.argv() do
       IO.puts("#{id}: #{inspect(data)}")
     end)
 
+  ["reset", id] ->
+    link = UserDB.create_reset_link(id)
+    IO.puts(link)
+
   _ ->
     IO.puts("Usage: mix run scripts/user_cli.exs [put|get|delete|list] ...")
 end

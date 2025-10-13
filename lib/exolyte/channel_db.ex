@@ -1,6 +1,7 @@
 defmodule Exolyte.ChannelDB do
   def create_channel(id, name) do
     db = Exolyte.DB.get_db()
+
     channel_data = %{
       id: id,
       name: name,
@@ -28,6 +29,7 @@ defmodule Exolyte.ChannelDB do
 
   def update_channel(id, attrs) do
     db = Exolyte.DB.get_db()
+
     case get_channel(id) do
       nil -> {:error, :not_found}
       channel -> CubDB.put(db, {:channel, id}, Map.merge(channel, attrs))
@@ -41,8 +43,11 @@ defmodule Exolyte.ChannelDB do
 
   def add_user(id, user_id) do
     db = Exolyte.DB.get_db()
+
     case get_channel(id) do
-      nil -> {:error, :not_found}
+      nil ->
+        {:error, :not_found}
+
       channel ->
         updated_users = MapSet.put(channel.users, user_id)
         updated = %{channel | users: updated_users}
@@ -52,8 +57,11 @@ defmodule Exolyte.ChannelDB do
 
   def remove_user(id, user_id) do
     db = Exolyte.DB.get_db()
+
     case get_channel(id) do
-      nil -> {:error, :not_found}
+      nil ->
+        {:error, :not_found}
+
       channel ->
         updated_users = MapSet.delete(channel.users, user_id)
         updated = %{channel | users: updated_users}
@@ -73,10 +81,12 @@ defmodule Exolyte.ChannelDB do
     |> Enum.filter(fn {{:channel, _id}, %{users: users}} ->
       MapSet.member?(users, user_id)
     end)
+    |> Enum.map(fn {_, channel} -> channel end)
   end
 
   def list_channels() do
     db = Exolyte.DB.get_db()
+
     CubDB.select(db, keys: :all)
     |> Enum.filter(fn
       {{:channel, _id}, _value} -> true
