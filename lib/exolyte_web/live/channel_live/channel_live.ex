@@ -47,7 +47,7 @@ defmodule ExolyteWeb.ChannelLive do
     ~H"""
     <div class="drawer">
       <input id="channel-drawer" type="checkbox" class="drawer-toggle" />
-      <div class="drawer-content flex flex-col h-screen">
+      <div class="drawer-content flex flex-col h-dvh">
         <div class="navbar bg-base-100 shadow-sm">
           <label for="channel-drawer" class="btn drawer-button"><%= @channel_info.name %></label>
         </div>
