@@ -65,3 +65,9 @@ When using Nginx or similar as a reverse proxy, you need to configure it to allo
 
 `systemd/exolyte.service` can be used as a Systemd service unit.
 Replace the `Environment` line with the appropriate values.
+
+## URLs
+
+* `/mypage` -> User Mypage
+* `/login` -> Login page
+* `/channel/:channel_id` -> Chat channel

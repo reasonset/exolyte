@@ -28,6 +28,7 @@ defmodule ExolyteWeb.ChannelLive do
         |> Enum.reject(&is_nil/1)
 
       user_color_map = Map.new(channel_users, fn u -> {u.id, u.user_color} end)
+      user_name_map = Map.new(channel_users, fn u -> {u.id, u.display_name} end)
 
       {:ok,
        socket
@@ -35,6 +36,7 @@ defmodule ExolyteWeb.ChannelLive do
        |> assign(:channel_info, channel_info)
        |> assign(:channel_users, channel_users)
        |> assign(:channel_user_colors, user_color_map)
+       |> assign(:channel_user_names, user_name_map)
        |> assign(:messages, [])
        |> assign(:oldest_index, nil)
        |> assign(:has_more, false)}
@@ -55,7 +57,7 @@ defmodule ExolyteWeb.ChannelLive do
           <%= for msg <- @messages do %>
             <div class={"chat #{if msg["user_id"] == @current_user.id, do: "chat-end", else: "chat-start"}"}>
             <div class="chat-header">
-              <span style={"color: #{@channel_user_colors[msg["user_id"]]}"}><%= msg["user_id"] %></span>
+              <span style={"color: #{@channel_user_colors[msg["user_id"]]}"} class="text-sm"><%= @channel_user_names[msg["user_id"]] %></span>
               <time class="text-xs opacity-70">
                 <%= format_time(msg["timestamp"]) %>
               </time>
@@ -69,7 +71,7 @@ defmodule ExolyteWeb.ChannelLive do
         <div class="bg-base-100 border-t p-3">
           <div>
             <form phx-submit="send_message" class="flex items-center gap-2" phx-hook="Keybinds" id="ChatForm">
-              <textarea id="chat-input" placeholder="Something be good" class="textarea textarea-bordered flex-1 resize-none overflow-y-auto max-h-[30vh] h-auto min-h-0" rows="1" phx-hook="AutoResize" name="content"></textarea>
+              <textarea id="chat-input" placeholder="Something be good" class="textarea textarea-bordered flex-1 resize-none overflow-y-auto max-h-[30vh] h-auto min-h-0 font-mono" rows="1" phx-hook="AutoResize" name="content"></textarea>
               <button class="btn btn-primary" type="submit"><%= gettext("Chat!") %></button>
             </form>
           </div>
