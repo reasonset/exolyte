@@ -6,9 +6,9 @@ Minimalist Elixir-based chat system for the web. Built for rapid prototyping and
 
 ## Screenshot
 
-![Chat with short message](doc/img/hnz.webp)
+![Chat with short message](doc_gh/img/hnz.webp)
 
-![Chat with Markdown (GFM supported)](doc/img/cop.webp)
+![Chat with Markdown (GFM supported)](doc_gh/img/cop.webp)
 
 ## Dependencies
 
