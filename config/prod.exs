@@ -22,3 +22,6 @@ config :logger, level: :info
 
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
+
+config :exolyte, :admin,
+  token: "L3Td0jo7fI7e4d1iEop6wb/JgpfZZGKFzYEk1Tk8bu/GTrmqC2rri020Kajt8RTP"

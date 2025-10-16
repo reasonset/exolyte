@@ -4,6 +4,12 @@
 
 Minimalist Elixir-based chat system for the web. Built for rapid prototyping and OSS exploration.
 
+## Screenshot
+
+![Chat with short message](doc/img/hnz.webp)
+
+![Chat with Markdown (GFM supported)](doc/img/cop.webp)
+
 ## Dependencies
 
 * Elixir 1.18
@@ -58,6 +64,7 @@ Reset link expires after 24 hours passed.
 * `cd`
 * `mix deps.get`
 * Configure the `check_origin` and `url` settings in `config/prod.exs` according to your environment.
+* Configure the `admin.token` settings in `config/prod.exs`
 * `SECRET_KEY_BASE=${secret_key} MIX_ENV=prod mix compile`
 * `SECRET_KEY_BASE=${secret_key} MIX_ENV=prod mix phx.server`
 
@@ -71,3 +78,19 @@ Replace the `Environment` line with the appropriate values.
 * `/mypage` -> User Mypage
 * `/login` -> Login page
 * `/channel/:channel_id` -> Chat channel
+
+## Live administration
+
+api_cli.exs uses Exolyte's admin API to update settings live. When updating settings this way, no server restart is required.
+
+ali_cli.exs utilizes the server API, so the server must be running to use it.
+
+The admin API requires an Admin token, but api-cli.exs uses the Admin token from config, so it does not need to be specified explicitly.
+It is safe to use the admin API through api-cli.exs.
+
+```
+mix run scripts/api_cli.exs user_create <user_id> <display_name>
+mix run scripts/api_cli.exs user_reset <user_id>
+mix run scripts/api_cli.exs channel_create <channel_id> <channel_name>
+mix run scripts/api_cli.exs channel_join <channel_id> <user_id>
+```

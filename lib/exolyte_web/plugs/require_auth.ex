@@ -11,7 +11,14 @@ defmodule ExolyteWeb.Plugs.RequireAuth do
         |> halt()
 
       user_id ->
-        assign(conn, :user_id, user_id)
+        user = Exolyte.UserDB.get_user(user_id)
+        user_theme = if Map.has_key?(user, :theme), do: user.theme, else: "kawaiifb"
+
+        conn
+        |> assign(:user_id, user_id)
+        |> assign(:current_user, user)
+        |> assign(:user_theme, user_theme)
+
     end
   end
 end

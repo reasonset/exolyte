@@ -3,14 +3,16 @@ defmodule Exolyte.UserDB do
     "#e91f60",
     "#de3cb5",
     "#b270dd",
-    "#7956c6",
+    "#8c6bd3",
     "#4d4acf",
     "#4a8bcf",
     "#4acfcf",
     "#32d25f",
     "#87c744",
-    "#efd939",
-    "#e7823c"
+    "#bca709",
+    "#e7823c",
+    "#c55589",
+    "#b62641"
   ]
 
   @reset_db "priv/user_reset"
@@ -21,12 +23,15 @@ defmodule Exolyte.UserDB do
     hashed_pw = Bcrypt.hash_pwd_salt(plain_pw)
     user_color = Enum.random(@name_colors)
 
-    CubDB.put(db, {:user, normalized_id}, %{
+    user = %{
       id: normalized_id,
       display_name: name,
       password_hash: hashed_pw,
       user_color: user_color
-    })
+    }
+
+    CubDB.put(db, {:user, normalized_id}, user)
+    user
   end
 
   def get_user(id) do

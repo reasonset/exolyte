@@ -52,6 +52,7 @@ defmodule Exolyte.ChannelDB do
         updated_users = MapSet.put(channel.users, user_id)
         updated = %{channel | users: updated_users}
         CubDB.put(db, {:channel, id}, updated)
+        {:ok, updated}
     end
   end
 

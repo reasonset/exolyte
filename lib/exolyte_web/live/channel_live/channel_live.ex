@@ -8,35 +8,12 @@ defmodule ExolyteWeb.ChannelLive do
     end
 
     with channel_info when not is_nil(channel_info) <- Exolyte.ChannelDB.get_channel(channel_id),
-         true <- MapSet.member?(channel_info.users, session["user_id"]) do
-      channel_users =
-        channel_info.users
-        |> MapSet.to_list()
-        |> Enum.map(fn user_id ->
-          case Exolyte.UserDB.get_user(user_id) do
-            nil ->
-              nil
-
-            user ->
-              %{
-                id: user.id,
-                display_name: user.display_name,
-                user_color: user.user_color
-              }
-          end
-        end)
-        |> Enum.reject(&is_nil/1)
-
-      user_color_map = Map.new(channel_users, fn u -> {u.id, u.user_color} end)
-      user_name_map = Map.new(channel_users, fn u -> {u.id, u.display_name} end)
+          true <- MapSet.member?(channel_info.users, session["user_id"]) do
+      ssocket = set_channel_info(channel_info, socket)
 
       {:ok,
-       socket
+       ssocket
        |> assign(:channel_id, channel_id)
-       |> assign(:channel_info, channel_info)
-       |> assign(:channel_users, channel_users)
-       |> assign(:channel_user_colors, user_color_map)
-       |> assign(:channel_user_names, user_name_map)
        |> assign(:messages, [])
        |> assign(:oldest_index, nil)
        |> assign(:has_more, false)}
@@ -57,7 +34,13 @@ defmodule ExolyteWeb.ChannelLive do
           <%= for msg <- @messages do %>
             <div class={"chat #{if msg["user_id"] == @current_user.id, do: "chat-end", else: "chat-start"}"}>
             <div class="chat-header">
-              <span style={"color: #{@channel_user_colors[msg["user_id"]]}"} class="text-sm"><%= @channel_user_names[msg["user_id"]] %></span>
+              <span style={"color: #{Map.get(@channel_user_colors, msg["user_id"], "#999999")}"} class="text-sm item-center inline-flex leading-none">
+              <%= if Map.get(@channel_user_names, msg["user_id"]) do %>
+                <%= @channel_user_names[msg["user_id"]] %>
+              <% else %>
+                <del><%= msg["user_id"] %></del>
+              <% end %>
+              </span>
               <time class="text-xs opacity-70">
                 <%= format_time(msg["timestamp"]) %>
               </time>
@@ -173,5 +156,34 @@ defmodule ExolyteWeb.ChannelLive do
       |> Earmark.as_html!(gfm: true)
 
     Map.put(message, "content", message_marked)
+  end
+
+  defp set_channel_info(channel_info, socket) do
+    channel_users =
+      channel_info.users
+      |> MapSet.to_list()
+      |> Enum.map(fn user_id ->
+        case Exolyte.UserDB.get_user(user_id) do
+          nil ->
+            nil
+
+          user ->
+            %{
+              id: user.id,
+              display_name: user.display_name,
+              user_color: user.user_color
+            }
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    user_color_map = Map.new(channel_users, fn u -> {u.id, u.user_color} end)
+    user_name_map = Map.new(channel_users, fn u -> {u.id, u.display_name} end)
+
+    socket
+    |> assign(:channel_info, channel_info)
+    |> assign(:channel_users, channel_users)
+    |> assign(:channel_user_colors, user_color_map)
+    |> assign(:channel_user_names, user_name_map)
   end
 end

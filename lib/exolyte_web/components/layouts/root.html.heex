@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html data-theme="synthwave">
-<!-- <html data-theme="light"> -->
+<html data-theme={assigns[:user_theme] || "kawaiifb"}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="Exolyte" suffix=" · Phoenix Framework">
+    <.live_title default="Exolyte" suffix="">
       {assigns[:page_title]}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />

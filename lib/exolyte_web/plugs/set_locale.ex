@@ -18,7 +18,11 @@ defmodule ExolyteWeb.Plugs.SetLocale do
   end
 
   defp parse_locale(header) do
-    # "ja,en;q=0.9" → "ja"
-    String.split(header, ",") |> List.first()
+    if header do
+      # "ja,en;q=0.9" → "ja"
+      String.split(header, ",") |> List.first()
+    else
+      header
+    end
   end
 end

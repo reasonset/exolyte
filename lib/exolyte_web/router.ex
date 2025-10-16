@@ -6,9 +6,13 @@ defmodule ExolyteWeb.Router do
     plug :fetch_session
     plug ExolyteWeb.Plugs.SetLocale
     plug :fetch_live_flash
-    plug :put_root_layout, html: {ExolyteWeb.Layouts, :root}
     plug :protect_from_forgery
+    plug :put_root_layout, html: {ExolyteWeb.Layouts, :root}
     plug :put_secure_browser_headers
+  end
+
+  pipeline :unauthenticated do
+    plug ExolyteWeb.Plugs.SetTheme
   end
 
   pipeline :authenticated do
@@ -21,6 +25,10 @@ defmodule ExolyteWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+  end
+
+  pipeline :admin do
+    plug ExolyteWeb.Plugs.Admin
   end
 
   scope "/", ExolyteWeb do
@@ -38,11 +46,24 @@ defmodule ExolyteWeb.Router do
     pipe_through [:browser, :authenticated]
   end
 
-  live_session :default, on_mount: [ExolyteWeb.LiveAuth, ExolyteWeb.PutLocale] do
-    pipe_through [:browser]
+  scope "/admin", ExolyteWeb do
+    pipe_through [:api, :admin]
 
-    live "/mypage", ExolyteWeb.UserLive.Show
-    live "/channel/:channel_id", ExolyteWeb.ChannelLive
+    post "/channel/create", AdminController, :create_channel
+    post "/channel/join", AdminController, :join
+    post "/user/create", AdminController, :create_user
+    post "/user/reset", AdminController, :reset_user
+
+    # get "/test", InspectController, :show
+  end
+
+  live_session :default, on_mount: [ExolyteWeb.LiveAuth, ExolyteWeb.PutLocale] do
+    scope "/", ExolyteWeb do
+      pipe_through [:browser]
+  
+      live "/mypage", UserLive.Show
+      live "/channel/:channel_id", ChannelLive
+    end
   end
 
   # Other scopes may use custom stacks.
