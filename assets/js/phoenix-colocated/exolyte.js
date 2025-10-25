@@ -1,4 +1,7 @@
 let Hooks = {}
+let SoundBipo
+let SoundBipi
+let SoundChi
 
 Hooks.AutoResize = {
   mounted() {
@@ -29,9 +32,24 @@ Hooks.ChatContainerHook = {
         })
       }
     })
+
+    this.handleEvent("sound_receive", () => {
+      if (SoundBipo) {
+        if (document.hidden) {
+          SoundBipo.play()
+        } else {
+          SoundChi.play()
+        }
+      }
+    })
+    this.handleEvent("sound_sent", () => {
+      if (SoundBipi) {
+        SoundBipi.play()
+      }
+    })
   },
   updated() {
-    const nearBottom = this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight < (this.el.clientHeight / 3)
+    const nearBottom = this.el.scrollHeight - this.el.scrollTop - this.el.clientHeight < (this.el.clientHeight / 2)
     if (nearBottom) {
       this.el.scrollTop = this.el.scrollHeight
     }
@@ -64,5 +82,13 @@ Hooks.Keybinds = {
     })
   }
 }
+
+window.addEventListener("click", e => {
+  if (!SoundBipo) {
+    SoundBipo = new Audio("/notification_sound.ogg")
+    SoundChi = new Audio("/notification_foreground_sound.ogg")
+    SoundBipi = new Audio("/sending_sound.ogg")
+  }
+})
 
 export {Hooks as hooks}

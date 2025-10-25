@@ -54,7 +54,7 @@ defmodule ExolyteWeb.ChannelLive do
         <div class="bg-base-100 border-t p-3">
           <div>
             <form phx-submit="send_message" class="flex items-center gap-2" phx-hook="Keybinds" id="ChatForm">
-              <textarea id="chat-input" placeholder="Something be good" class="textarea textarea-bordered flex-1 resize-none overflow-y-auto max-h-[30vh] h-auto min-h-0 font-mono" rows="1" phx-hook="AutoResize" name="content"></textarea>
+              <textarea id="chat-input" placeholder="Something be good" class="textarea textarea-bordered flex-1 resize-none overflow-y-auto max-h-[30vh] h-auto min-h-0 font-mono" rows="1" phx-hook="AutoResize" name="content" required></textarea>
               <button class="btn btn-primary" type="submit"><%= gettext("Chat!") %></button>
             </form>
           </div>
@@ -95,6 +95,7 @@ defmodule ExolyteWeb.ChannelLive do
     if message["user_id"] == socket.assigns.user_id do
       {:noreply, socket}
     else
+      socket = push_event(socket, "sound_receive", %{})
       {:noreply, assign(socket, :messages, socket.assigns.messages ++ [message])}
     end
   end
@@ -121,20 +122,25 @@ defmodule ExolyteWeb.ChannelLive do
   end
 
   def handle_event("send_message", %{"content" => content}, socket) do
-    chat = %{
-      "user_id" => socket.assigns.user_id,
-      "content" => content
-    }
+    if (!content || String.length(String.trim(content)) < 1) do
+      {:noreply, socket}
+    else
+      chat = %{
+        "user_id" => socket.assigns.user_id,
+        "content" => String.trim(content)
+      }
 
-    message = format_message(Exolyte.ChannelLog.append_message(socket.assigns.channel_id, chat))
+      message = format_message(Exolyte.ChannelLog.append_message(socket.assigns.channel_id, chat))
 
-    Phoenix.PubSub.broadcast(
-      Exolyte.PubSub,
-      "channel:#{socket.assigns.channel_id}",
-      {:new_message, message}
-    )
+      Phoenix.PubSub.broadcast(
+        Exolyte.PubSub,
+        "channel:#{socket.assigns.channel_id}",
+        {:new_message, message}
+      )
 
-    {:noreply, assign(socket, :messages, socket.assigns.messages ++ [message])}
+      socket = push_event(socket, "sound_sent", %{})
+      {:noreply, assign(socket, :messages, socket.assigns.messages ++ [message])}
+    end
   end
 
   defp format_time(unix_ts) do

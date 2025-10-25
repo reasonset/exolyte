@@ -39,6 +39,9 @@ defmodule ExolyteWeb.Router do
     get "/reset/:link_uuid", UserController, :show
     post "/reset/:link_uuid", UserController, :reset
     get "/not_found", ErrorController, :notfound
+    get "/notification_sound.ogg", FileController, :bipo
+    get "/notification_foreground_sound.ogg", FileController, :chi
+    get "/sending_sound.ogg", FileController, :bipi
     get "/", PageController, :home
   end
 
@@ -60,7 +63,7 @@ defmodule ExolyteWeb.Router do
   live_session :default, on_mount: [ExolyteWeb.LiveAuth, ExolyteWeb.PutLocale] do
     scope "/", ExolyteWeb do
       pipe_through [:browser]
-  
+
       live "/mypage", UserLive.Show
       live "/channel/:channel_id", ChannelLive
     end
