@@ -3,6 +3,8 @@ let SoundBipo
 let SoundBipi
 let SoundChi
 
+let isWindowFocused
+
 Hooks.AutoResize = {
   mounted() {
     this.el.addEventListener("input", () => {
@@ -35,7 +37,7 @@ Hooks.ChatContainerHook = {
 
     this.handleEvent("sound_receive", () => {
       if (SoundBipo) {
-        if (document.hidden) {
+        if (document.hidden || !isWindowFocused) {
           SoundBipo.play()
         } else {
           SoundChi.play()
@@ -89,6 +91,33 @@ window.addEventListener("click", e => {
     SoundChi = new Audio("/notification_foreground_sound.ogg")
     SoundBipi = new Audio("/sending_sound.ogg")
   }
+})
+
+const chatObserver = new MutationObserver((ml) => {
+  for (const m of ml) {
+    for (const node of m.addedNodes) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const time_el = node.querySelector("time[data-timestamp]")
+        if (time_el) {
+          const ts = new Date(Number(time_el.dataset.timestamp) * 1000)
+          time_el.innerText = `${ts.getFullYear()}-${("00" + (ts.getMonth() + 1)).slice(-2)}-${("00" + ts.getDate()).slice(-2)} ${("00" + ts.getHours()).slice(-2)}:${("00" + ts.getMinutes()).slice(-2)}:${("00" + ts.getSeconds()).slice(-2)}`
+        }
+      }
+    }
+  }
+})
+
+chatObserver.observe(document.getElementById("chat-messages"), {
+  childList: true,
+  subtree: true
+})
+
+window.addEventListener("focus", e => {
+  isWindowFocused = true
+})
+
+window.addEventListener("blur", e => {
+  isWindowFocused = false
 })
 
 export {Hooks as hooks}

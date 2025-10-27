@@ -41,8 +41,7 @@ defmodule ExolyteWeb.ChannelLive do
                 <del><%= msg["user_id"] %></del>
               <% end %>
               </span>
-              <time class="text-xs opacity-70">
-                <%= format_time(msg["timestamp"]) %>
+              <time class="text-xs opacity-70" data-timestamp={msg["timestamp"]}>
               </time>
             </div>
             <div class={"chat-bubble #{if msg["user_id"] == @current_user.id, do: "chat-bubble-primary", else: "chat-bubble-secondary"}"}>
