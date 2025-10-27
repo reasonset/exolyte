@@ -65,10 +65,18 @@ Reset link expires after 24 hours passed.
 * Clone repository on prod server
 * `cd`
 * `mix deps.get`
-* Configure the `check_origin` and `url` settings in `config/prod.exs` according to your environment.
-* Configure the `admin.token` settings in `config/prod.exs`
-* `SECRET_KEY_BASE=${secret_key} MIX_ENV=prod mix compile`
-* `SECRET_KEY_BASE=${secret_key} MIX_ENV=prod mix phx.server`
+* Configure the `admin.token` settings in `config/prod.secret.exs`
+* `SECRET_KEY_BASE=${secret_key} EXOLYTE_HOST=${exolyte_host_name} MIX_ENV=prod mix compile`
+* `SECRET_KEY_BASE=${secret_key} EXOLYTE_HOST=${exolyte_host_name} MIX_ENV=prod mix phx.server`
+
+Example of `prod.secret.exs`:
+
+```elixir
+import Config
+
+config :exolyte, :admin,
+  token: "NfYWkx1p67Df5e5/nC+fabfEWAlqlnhKfufScTykqOaNkBEVut3TEqnuC8sktqjh"
+```
 
 When using Nginx or similar as a reverse proxy, you need to configure it to allow WebSocket traffic.
 

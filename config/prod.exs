@@ -7,9 +7,9 @@ import Config
 # before starting your production server.
 config :exolyte, ExolyteWeb.Endpoint,
   cache_static_manifest: "priv/static/cache_manifest.json",
-  url: [host: "localhost"],
-  check_origin: ["//localhost:4000"],
-  http: [port: System.get_env("PORT") || 4000]
+  url: [host: System.get_env("EXOLYTE_HOST")],
+  check_origin: ["//localhost:4000", "//#{System.get_env("EXOLYTE_HOST")}"],
+  http: [port: String.to_integer(System.get_env("PORT")) || 4000]
 
 # Configures Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Req
@@ -23,5 +23,4 @@ config :logger, level: :info
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
 
-config :exolyte, :admin,
-  token: "L3Td0jo7fI7e4d1iEop6wb/JgpfZZGKFzYEk1Tk8bu/GTrmqC2rri020Kajt8RTP"
+import_config("prod.secet.exs")

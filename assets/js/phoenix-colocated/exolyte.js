@@ -93,21 +93,32 @@ window.addEventListener("click", e => {
   }
 })
 
-const chatObserver = new MutationObserver((ml) => {
-  for (const m of ml) {
-    for (const node of m.addedNodes) {
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        const time_el = node.querySelector("time[data-timestamp]")
-        if (time_el) {
-          const ts = new Date(Number(time_el.dataset.timestamp) * 1000)
-          time_el.innerText = `${ts.getFullYear()}-${("00" + (ts.getMonth() + 1)).slice(-2)}-${("00" + ts.getDate()).slice(-2)} ${("00" + ts.getHours()).slice(-2)}:${("00" + ts.getMinutes()).slice(-2)}:${("00" + ts.getSeconds()).slice(-2)}`
-        }
-      }
-    }
-  }
+const chatMessageContainer = document.getElementById("chat-messages")
+
+// const chatObserver = new MutationObserver((ml) => {
+//   for (const m of ml) {
+//     for (const node of m.addedNodes) {
+//       if (node.nodeType === Node.ELEMENT_NODE) {
+//         const time_el = node.querySelector("time[data-timestamp]")
+//         if (time_el) {
+//           const ts = new Date(Number(time_el.dataset.timestamp) * 1000)
+//           time_el.innerText = `${ts.getFullYear()}-${("00" + (ts.getMonth() + 1)).slice(-2)}-${("00" + ts.getDate()).slice(-2)} ${("00" + ts.getHours()).slice(-2)}:${("00" + ts.getMinutes()).slice(-2)}:${("00" + ts.getSeconds()).slice(-2)}`
+//         }
+//       }
+//     }
+//   }
+// })
+
+const chatObserver = new MutationObserver(() => {
+  chatMessageContainer.querySelectorAll("time[data-timestamp]").forEach(time_el =>{
+    const ts = new Date(Number(time_el.dataset.timestamp) * 1000)
+    if (!ts || time_el.dataset.localized === "true") {return}
+    time_el.innerText = `${ts.getFullYear()}-${("00" + (ts.getMonth() + 1)).slice(-2)}-${("00" + ts.getDate()).slice(-2)} ${("00" + ts.getHours()).slice(-2)}:${("00" + ts.getMinutes()).slice(-2)}:${("00" + ts.getSeconds()).slice(-2)}`
+    time_el.dataset.localized = "true"
+  })
 })
 
-chatObserver.observe(document.getElementById("chat-messages"), {
+chatObserver.observe(chatMessageContainer, {
   childList: true,
   subtree: true
 })
