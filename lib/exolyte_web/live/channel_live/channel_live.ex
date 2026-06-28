@@ -99,6 +99,15 @@ defmodule ExolyteWeb.ChannelLive do
     end
   end
 
+  def handle_info({:new_message, message, sender_session_id}, socket) do
+    if sender_session_id == socket.assigns.session_id do
+      {:noreply, socket}
+    else
+      socket = push_event(socket, "sound_receive", %{})
+      {:noreply, assign(socket, :messages, socket.assigns.messages ++ [message])}
+    end
+  end
+
   def handle_event("load_more", _params, socket) do
     if socket.assigns.oldest_index > 1 do
       {:ok, path} =
@@ -134,7 +143,7 @@ defmodule ExolyteWeb.ChannelLive do
       Phoenix.PubSub.broadcast(
         Exolyte.PubSub,
         "channel:#{socket.assigns.channel_id}",
-        {:new_message, message}
+        {:new_message, message, socket.assigns.session_id}
       )
 
       socket = push_event(socket, "sound_sent", %{})
