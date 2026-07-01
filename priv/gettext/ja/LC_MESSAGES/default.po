@@ -22,7 +22,7 @@ msgstr ""
 msgid "Attempting to reconnect"
 msgstr "再接続を試行"
 
-#: lib/exolyte_web/live/user_live/show.ex:26
+#: lib/exolyte_web/live/user_live/show.ex:65
 #, elixir-autogen, elixir-format
 msgid "Channels"
 msgstr "チャンネル"
@@ -61,7 +61,8 @@ msgid "Something went wrong!"
 msgstr "なにかがおかしいです！"
 
 #: lib/exolyte_web/controllers/session_html/login.html.heex:8
-#: lib/exolyte_web/live/user_live/show.ex:22
+#: lib/exolyte_web/live/channel_live/channel_live.ex:82
+#: lib/exolyte_web/live/user_live/show.ex:61
 #, elixir-autogen, elixir-format
 msgid "User ID"
 msgstr "ユーザーID"
@@ -76,7 +77,167 @@ msgstr "インターネットに接続されていません"
 msgid "close"
 msgstr "閉じる"
 
-#: lib/exolyte_web/live/channel_live/channel_live.ex:73
+#: lib/exolyte_web/live/channel_live/channel_live.ex:59
 #, elixir-autogen, elixir-format
 msgid "Chat!"
 msgstr "喋る！"
+
+#: lib/exolyte_web/live/live_auth.ex:19
+#, elixir-autogen, elixir-format
+msgid "Account is invalid."
+msgstr "アカウントは無効です"
+
+#: lib/exolyte_web/live/user_live/show.ex:50
+#, elixir-autogen, elixir-format
+msgid "Add"
+msgstr "追加"
+
+#: lib/exolyte_web/live/user_live/show.ex:34
+#, elixir-autogen, elixir-format
+msgid "Add Friend"
+msgstr "友達になる"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:127
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to block this channel?"
+msgstr "このチャンネルをブロックします"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:113
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to leave this channel?"
+msgstr "このチャンネルから脱退します"
+
+#: lib/exolyte_web/live/user_live/show.ex:140
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to unblock %{channel}?"
+msgstr "%{channel}のブロックを解除していいですか?"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:130
+#, elixir-autogen, elixir-format
+msgid "Block"
+msgstr "ブロック"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:103
+#: lib/exolyte_web/live/channel_live/channel_live.ex:126
+#, elixir-autogen, elixir-format
+msgid "Block channel"
+msgstr "チャンネルをブロック"
+
+#: lib/exolyte_web/live/user_live/show.ex:98
+#, elixir-autogen, elixir-format
+msgid "Blocked Channels"
+msgstr "ブロックしたチャンネル"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:115
+#: lib/exolyte_web/live/channel_live/channel_live.ex:129
+#: lib/exolyte_web/live/user_live/show.ex:142
+#, elixir-autogen, elixir-format
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: lib/exolyte_web/live/user_live/show.ex:174
+#, elixir-autogen, elixir-format
+msgid "Cannot add yourself."
+msgstr "自分を追加することはできません"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:232
+#, elixir-autogen, elixir-format
+msgid "Cannot invite yourself."
+msgstr "自分を招待するとはできません"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:119
+#: lib/exolyte_web/live/channel_live/channel_live.ex:133
+#, elixir-autogen, elixir-format
+msgid "Close"
+msgstr "閉じる"
+
+#: lib/exolyte_web/live/user_live/show.ex:75
+#, elixir-autogen, elixir-format
+msgid "Direct Messages"
+msgstr "ダイレクトメッセージ"
+
+#: lib/exolyte_web/live/user_live/show.ex:130
+#: lib/exolyte_web/live/user_live/show.ex:131
+#, elixir-autogen, elixir-format
+msgid "Display Name"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:36
+#, elixir-autogen, elixir-format
+msgid "Enter User ID to search"
+msgstr "検索するユーザーID"
+
+#: lib/exolyte_web/live/user_live/show.ex:207
+#, elixir-autogen, elixir-format
+msgid "Failed to add friend: %{reason}"
+msgstr "フレンドに追加できません: %{reason}"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:284
+#, elixir-autogen, elixir-format
+msgid "Failed to invite user: %{reason}"
+msgstr "招待できません: %{reason}"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:95
+#, elixir-autogen, elixir-format
+msgid "Invite"
+msgstr "招待"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:80
+#, elixir-autogen, elixir-format
+msgid "Invite User"
+msgstr "無効なユーザー"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:116
+#, elixir-autogen, elixir-format
+msgid "Leave"
+msgstr "脱退"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:102
+#: lib/exolyte_web/live/channel_live/channel_live.ex:112
+#, elixir-autogen, elixir-format
+msgid "Leave channel"
+msgstr "チャンネルから脱退"
+
+#: lib/exolyte_web/live/user_live/show.ex:102
+#, elixir-autogen, elixir-format
+msgid "No blocked channels."
+msgstr "ブロックしたチャンネルはありません"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:83
+#: lib/exolyte_web/live/user_live/show.ex:37
+#, elixir-autogen, elixir-format
+msgid "Search"
+msgstr "検索"
+
+#: lib/exolyte_web/live/user_live/show.ex:109
+#: lib/exolyte_web/live/user_live/show.ex:143
+#, elixir-autogen, elixir-format
+msgid "Unblock"
+msgstr "ブロック解除"
+
+#: lib/exolyte_web/live/user_live/show.ex:139
+#, elixir-autogen, elixir-format
+msgid "Unblock Channel"
+msgstr "ブロック解除"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:266
+#, elixir-autogen, elixir-format
+msgid "User has blocked this channel."
+msgstr "ユーザーはチャンネルをブロックしています"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:244
+#, elixir-autogen, elixir-format
+msgid "User is already in the channel."
+msgstr "ユーザーは既にチャンネルにいます"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:278
+#, elixir-autogen, elixir-format
+msgid "User is banned from this channel."
+msgstr "ユーザーはBANされています"
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:237
+#: lib/exolyte_web/live/channel_live/channel_live.ex:260
+#: lib/exolyte_web/live/user_live/show.ex:178
+#, elixir-autogen, elixir-format
+msgid "User not found."
+msgstr "ユーザーが見つかりません"

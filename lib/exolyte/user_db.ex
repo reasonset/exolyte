@@ -16,6 +16,9 @@ defmodule Exolyte.UserDB do
   ]
 
   @reset_db "priv/user_reset"
+  @user_default %{
+    "blocked_channels" => MapSet.new()
+  }
 
   def put_user(id, name, plain_pw) do
     db = Exolyte.DB.get_db()
@@ -23,12 +26,13 @@ defmodule Exolyte.UserDB do
     hashed_pw = Bcrypt.hash_pwd_salt(plain_pw)
     user_color = Enum.random(@name_colors)
 
-    user = %{
-      id: normalized_id,
-      display_name: name,
-      password_hash: hashed_pw,
-      user_color: user_color
-    }
+    user =
+      Map.merge(@user_default, %{
+        id: normalized_id,
+        display_name: name,
+        password_hash: hashed_pw,
+        user_color: user_color
+      })
 
     CubDB.put(db, {:user, normalized_id}, user)
     user
@@ -53,6 +57,44 @@ defmodule Exolyte.UserDB do
     CubDB.delete(db, {:user, id})
   end
 
+  def block_channel(id, channel_id) do
+    db = Exolyte.DB.get_db()
+    normalized_id = String.downcase(id)
+
+    case get_user(normalized_id) do
+      nil ->
+        {:error, :not_found}
+
+      user ->
+        blocked = Map.get(user, "blocked_channels", MapSet.new())
+        updated_blocked = MapSet.put(blocked, channel_id)
+
+        CubDB.put(db, {:user, normalized_id}, Map.put(user, "blocked_channels", updated_blocked))
+
+        Exolyte.ChannelDB.remove_user(channel_id, normalized_id)
+
+        {:ok, updated_blocked}
+    end
+  end
+
+  def unblock_channel(id, channel_id) do
+    db = Exolyte.DB.get_db()
+    normalized_id = String.downcase(id)
+
+    case get_user(normalized_id) do
+      nil ->
+        {:error, :not_found}
+
+      user ->
+        blocked = Map.get(user, "blocked_channels", MapSet.new())
+        updated_blocked = MapSet.delete(blocked, channel_id)
+
+        CubDB.put(db, {:user, normalized_id}, Map.put(user, "blocked_channels", updated_blocked))
+
+        {:ok, updated_blocked}
+    end
+  end
+
   def list_users() do
     db = Exolyte.DB.get_db()
 
@@ -65,7 +107,7 @@ defmodule Exolyte.UserDB do
 
   def authenticate(id, plain_pw) do
     case get_user(id) do
-      %{password_hash: hash, frozen: true} ->
+      %{password_hash: _hash, frozen: true} ->
         {:error, :unauthorized}
 
       %{password_hash: hash} ->

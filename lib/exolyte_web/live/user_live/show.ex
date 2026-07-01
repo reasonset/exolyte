@@ -6,16 +6,53 @@ defmodule ExolyteWeb.UserLive.Show do
   def mount(_params, session, socket) do
     user_id = session["user_id"]
     channels = Exolyte.ChannelDB.channels_for_user(user_id)
+    user = Exolyte.UserDB.get_user(user_id)
+    blocked_channels = Map.get(user, "blocked_channels", MapSet.new()) |> MapSet.to_list()
+
+    {dm_channels, regular_channels} =
+      Enum.split_with(channels, fn
+        %{id: "dm:" <> _} -> true
+        _ -> false
+      end)
 
     {:ok,
      socket
      |> assign(:user_id, user_id)
-     |> assign(:channels, channels)}
+     |> assign(:regular_channels, regular_channels)
+     |> assign(:dm_channels, dm_channels)
+     |> assign(:blocked_channels, blocked_channels)
+     |> assign(:unblock_target, nil)
+     |> assign(:search_result, nil)
+     |> assign(:search_error, nil)}
   end
 
   def render(assigns) do
     ~H"""
     <div class="max-w-xl mx-auto mt-10">
+      <div class="card bg-base-100 shadow-xl mb-4">
+        <div class="card-body">
+          <h2 class="card-title text-xl"><%= gettext("Add Friend") %></h2>
+          <form phx-submit="search_user" class="flex gap-2">
+            <input type="text" name="search_id" class="input input-bordered flex-grow" placeholder={gettext("Enter User ID to search")} required />
+            <button type="submit" class="btn btn-primary"><%= gettext("Search") %></button>
+          </form>
+
+          <%= if @search_error do %>
+            <div class="text-error mt-2"><%= @search_error %></div>
+          <% end %>
+
+          <%= if @search_result do %>
+            <div class="flex items-center justify-between bg-base-200 p-4 rounded-box mt-4">
+              <div>
+                <p class="font-bold" style={"color: #{@search_result.user_color};"}><%= @search_result.display_name %></p>
+                <p class="text-sm text-base-content/70"><%= @search_result.id %></p>
+              </div>
+              <button phx-click="add_friend" phx-value-target_id={@search_result.id} class="btn btn-sm btn-success"><%= gettext("Add") %></button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
           <h2 class="card-title text-2xl" style={"color: #{@current_user.user_color};"}><%= @current_user.display_name %></h2>
@@ -27,14 +64,58 @@ defmodule ExolyteWeb.UserLive.Show do
           <div class="mt-6">
             <h3 class="text-lg font-semibold mb-2"><%= gettext("Channels") %></h3>
             <ul class="menu bg-base-200 rounded-box">
-              <%= for channel <- @channels do %>
+              <%= for channel <- @regular_channels do %>
                   <li><a href={"/channel/#{channel.id}"} phx-link="navigate"><%= channel.name %></a></li>
               <% end %>
             </ul>
           </div>
+
+          <%= if length(@dm_channels) > 0 do %>
+            <div class="mt-6">
+              <h3 class="text-lg font-semibold mb-2"><%= gettext("Direct Messages") %></h3>
+              <ul class="menu bg-base-200 rounded-box">
+                <%= for channel <- @dm_channels do %>
+                    <%
+                      "dm:" <> rest = channel.id
+                      [u1, u2] = String.split(rest, ":")
+                      other_user_id = if u1 == @user_id, do: u2, else: u1
+                    %>
+                    <li>
+                      <a href={"/channel/#{channel.id}"} phx-link="navigate">
+                        @<%= other_user_id %>
+                      </a>
+                    </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
         </div>
       </div>
-      <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+
+      <div class="collapse bg-base-200 mt-4 border border-base-300">
+        <input type="checkbox" /> 
+        <div class="collapse-title text-xl font-medium">
+          <%= gettext("Blocked Channels") %>
+        </div>
+        <div class="collapse-content">
+          <%= if length(@blocked_channels) == 0 do %>
+            <p><%= gettext("No blocked channels.") %></p>
+          <% else %>
+            <ul class="menu">
+              <%= for channel_id <- @blocked_channels do %>
+                <li class="flex flex-row justify-between items-center">
+                  <span class="flex-1"><%= channel_id %></span>
+                  <button phx-click="confirm_unblock" phx-value-channel_id={channel_id} class="btn btn-sm btn-outline btn-error ml-2">
+                    <%= gettext("Unblock") %>
+                  </button>
+                </li>
+              <% end %>
+            </ul>
+          <% end %>
+        </div>
+      </div>
+
+      <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4 mt-4">
         <legend class="fieldset-legend">Settings</legend>
           <form phx-submit="update_user">
             <span class="label">Theme</span>
@@ -51,11 +132,27 @@ defmodule ExolyteWeb.UserLive.Show do
             <button class="btn btn-neutral mt-4" type="submit">save</button>
           </form>
       </fieldset>
+
+      <!-- Unblock Confirmation Modal -->
+      <div class={"modal #{if @unblock_target, do: "modal-open", else: ""}"} role="dialog">
+        <div class="modal-box">
+          <h3 class="text-lg font-bold"><%= gettext("Unblock Channel") %></h3>
+          <p class="py-4"><%= gettext("Are you sure you want to unblock %{channel}?", channel: @unblock_target) %></p>
+          <div class="modal-action">
+            <button class="btn" phx-click="cancel_unblock"><%= gettext("Cancel") %></button>
+            <button class="btn btn-error" phx-click="execute_unblock"><%= gettext("Unblock") %></button>
+          </div>
+        </div>
+      </div>
     </div>
     """
   end
 
-  def handle_event("update_user", %{"disp_name" => display_name, "theme_name" => user_theme}, socket) do
+  def handle_event(
+        "update_user",
+        %{"disp_name" => display_name, "theme_name" => user_theme},
+        socket
+      ) do
     theme = if MapSet.member?(@themes, user_theme), do: user_theme, else: "kawaiifb"
 
     newsetting = %{display_name: display_name, theme: theme}
@@ -63,8 +160,73 @@ defmodule ExolyteWeb.UserLive.Show do
 
     current_user = Map.merge(socket.assigns.current_user, newsetting)
 
-    {:noreply, socket
+    {:noreply,
+     socket
      |> assign(:current_user, current_user)
      |> assign(:user_theme, theme)}
+  end
+
+  def handle_event("search_user", %{"search_id" => search_id}, socket) do
+    normalized_id = String.downcase(String.trim(search_id))
+
+    if normalized_id == socket.assigns.user_id do
+      {:noreply,
+       assign(socket, search_result: nil, search_error: gettext("Cannot add yourself."))}
+    else
+      case Exolyte.UserDB.get_user(normalized_id) do
+        nil ->
+          {:noreply, assign(socket, search_result: nil, search_error: gettext("User not found."))}
+
+        user ->
+          {:noreply, assign(socket, search_result: user, search_error: nil)}
+      end
+    end
+  end
+
+  def handle_event("add_friend", %{"target_id" => target_id}, socket) do
+    case Exolyte.Friend.add_friend(socket.assigns.user_id, target_id) do
+      {:ok, _channel_id} ->
+        channels = Exolyte.ChannelDB.channels_for_user(socket.assigns.user_id)
+
+        {dm_channels, regular_channels} =
+          Enum.split_with(channels, fn
+            %{id: "dm:" <> _} -> true
+            _ -> false
+          end)
+
+        {:noreply,
+         socket
+         |> assign(:search_result, nil)
+         |> assign(:search_error, nil)
+         |> assign(:regular_channels, regular_channels)
+         |> assign(:dm_channels, dm_channels)}
+
+      {:error, reason} ->
+        {:noreply,
+         assign(socket,
+           search_error: gettext("Failed to add friend: %{reason}", reason: inspect(reason))
+         )}
+    end
+  end
+
+  def handle_event("confirm_unblock", %{"channel_id" => channel_id}, socket) do
+    {:noreply, assign(socket, :unblock_target, channel_id)}
+  end
+
+  def handle_event("cancel_unblock", _params, socket) do
+    {:noreply, assign(socket, :unblock_target, nil)}
+  end
+
+  def handle_event("execute_unblock", _params, socket) do
+    if socket.assigns.unblock_target do
+      Exolyte.UserDB.unblock_channel(socket.assigns.user_id, socket.assigns.unblock_target)
+
+      user = Exolyte.UserDB.get_user(socket.assigns.user_id)
+      blocked_channels = Map.get(user, "blocked_channels", MapSet.new()) |> MapSet.to_list()
+
+      {:noreply, assign(socket, unblock_target: nil, blocked_channels: blocked_channels)}
+    else
+      {:noreply, socket}
+    end
   end
 end

@@ -8,7 +8,7 @@ defmodule ExolyteWeb.ChannelLive do
     end
 
     with channel_info when not is_nil(channel_info) <- Exolyte.ChannelDB.get_channel(channel_id),
-          true <- MapSet.member?(channel_info.users, session["user_id"]) do
+         true <- MapSet.member?(channel_info.users, session["user_id"]) do
       ssocket = set_channel_info(channel_info, socket)
 
       {:ok,
@@ -16,7 +16,9 @@ defmodule ExolyteWeb.ChannelLive do
        |> assign(:channel_id, channel_id)
        |> assign(:messages, [])
        |> assign(:oldest_index, nil)
-       |> assign(:has_more, false)}
+       |> assign(:has_more, false)
+       |> assign(:search_result, nil)
+       |> assign(:search_error, nil)}
     else
       _ -> {:ok, push_navigate(socket, to: ~p"/not_found")}
     end
@@ -59,18 +61,76 @@ defmodule ExolyteWeb.ChannelLive do
           </div>
         </div>
       </div>
-      <div class="drawer-side">
+      <div class="drawer-side z-50">
         <label for="channel-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-        <ul class="menu bg-base-200 min-h-full w-80 p-4">
-          <li><a href="/mypage" phx-link="navigate"><%= @current_user.display_name %></a></li>
-          <ul class="menu bg-base-200 rounded-box">
+        <div class="menu bg-base-200 min-h-full w-80 p-4 flex flex-col">
+          <ul>
+            <li><a href="/mypage" phx-link="navigate"><%= @current_user.display_name %></a></li>
+          </ul>
+          <ul class="menu bg-base-200 rounded-box flex-1">
             <%= for user <- @channel_users do %>
               <li style={"color: #{user.user_color}"}>
                 <%= user.display_name %>
               </li>
             <% end %>
           </ul>
-        </ul>
+
+          <%= if not String.starts_with?(@channel_id, "dm:") do %>
+            <div class="mt-4 border-t pt-4 border-base-300">
+              <h3 class="text-sm font-bold mb-2"><%= gettext("Invite User") %></h3>
+              <form phx-submit="search_user" class="flex gap-2">
+                <input type="text" name="search_id" class="input input-sm input-bordered flex-grow min-w-0" placeholder={gettext("User ID")} required />
+                <button type="submit" class="btn btn-sm btn-primary"><%= gettext("Search") %></button>
+              </form>
+
+              <%= if @search_error do %>
+                <div class="text-error text-xs mt-2"><%= @search_error %></div>
+              <% end %>
+
+              <%= if @search_result do %>
+                <div class="flex items-center justify-between bg-base-100 p-2 rounded-box mt-2 shadow-sm">
+                  <div class="overflow-hidden">
+                    <p class="font-bold text-sm truncate" style={"color: #{@search_result.user_color};"}><%= @search_result.display_name %></p>
+                  </div>
+                  <button phx-click="invite_user" phx-value-target_id={@search_result.id} class="btn btn-xs btn-success ml-2"><%= gettext("Invite") %></button>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+
+          <div class="mt-auto flex flex-col gap-2 pt-4">
+            <label for="leave-modal" class="btn btn-outline btn-warning w-full"><%= gettext("Leave channel") %></label>
+            <label for="block-modal" class="btn btn-outline btn-error w-full"><%= gettext("Block channel") %></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leave Channel Modal -->
+      <input type="checkbox" id="leave-modal" class="modal-toggle" />
+      <div class="modal" role="dialog">
+        <div class="modal-box">
+          <h3 class="text-lg font-bold"><%= gettext("Leave channel") %></h3>
+          <p class="py-4"><%= gettext("Are you sure you want to leave this channel?") %></p>
+          <div class="modal-action">
+            <label for="leave-modal" class="btn"><%= gettext("Cancel") %></label>
+            <button class="btn btn-warning" phx-click="leave_channel"><%= gettext("Leave") %></button>
+          </div>
+        </div>
+        <label class="modal-backdrop" for="leave-modal"><%= gettext("Close") %></label>
+      </div>
+
+      <!-- Block Channel Modal -->
+      <input type="checkbox" id="block-modal" class="modal-toggle" />
+      <div class="modal" role="dialog">
+        <div class="modal-box">
+          <h3 class="text-lg font-bold"><%= gettext("Block channel") %></h3>
+          <p class="py-4"><%= gettext("Are you sure you want to block this channel?") %></p>
+          <div class="modal-action">
+            <label for="block-modal" class="btn"><%= gettext("Cancel") %></label>
+            <button class="btn btn-error" phx-click="block_channel"><%= gettext("Block") %></button>
+          </div>
+        </div>
+        <label class="modal-backdrop" for="block-modal"><%= gettext("Close") %></label>
       </div>
     </div>
     """
@@ -130,7 +190,7 @@ defmodule ExolyteWeb.ChannelLive do
   end
 
   def handle_event("send_message", %{"content" => content}, socket) do
-    if (!content || String.length(String.trim(content)) < 1) do
+    if !content || String.length(String.trim(content)) < 1 do
       {:noreply, socket}
     else
       chat = %{
@@ -148,6 +208,84 @@ defmodule ExolyteWeb.ChannelLive do
 
       socket = push_event(socket, "sound_sent", %{})
       {:noreply, assign(socket, :messages, socket.assigns.messages ++ [message])}
+    end
+  end
+
+  def handle_event("leave_channel", _params, socket) do
+    Exolyte.ChannelDB.remove_user(socket.assigns.channel_id, socket.assigns.user_id)
+    {:noreply, push_navigate(socket, to: ~p"/mypage")}
+  end
+
+  def handle_event("block_channel", _params, socket) do
+    Exolyte.UserDB.block_channel(socket.assigns.user_id, socket.assigns.channel_id)
+    {:noreply, push_navigate(socket, to: ~p"/mypage")}
+  end
+
+  def handle_event("search_user", %{"search_id" => search_id}, socket) do
+    if String.starts_with?(socket.assigns.channel_id, "dm:") do
+      {:noreply, socket}
+    else
+      normalized_id = String.downcase(String.trim(search_id))
+
+      if normalized_id == socket.assigns.user_id do
+        {:noreply,
+         assign(socket, search_result: nil, search_error: gettext("Cannot invite yourself."))}
+      else
+        case Exolyte.UserDB.get_user(normalized_id) do
+          nil ->
+            {:noreply,
+             assign(socket, search_result: nil, search_error: gettext("User not found."))}
+
+          user ->
+            if MapSet.member?(socket.assigns.channel_info.users, normalized_id) do
+              {:noreply,
+               assign(socket,
+                 search_result: nil,
+                 search_error: gettext("User is already in the channel.")
+               )}
+            else
+              {:noreply, assign(socket, search_result: user, search_error: nil)}
+            end
+        end
+      end
+    end
+  end
+
+  def handle_event("invite_user", %{"target_id" => target_id}, socket) do
+    if String.starts_with?(socket.assigns.channel_id, "dm:") do
+      {:noreply, socket}
+    else
+      case Exolyte.UserDB.get_user(target_id) do
+        nil ->
+          {:noreply, assign(socket, search_error: gettext("User not found."))}
+
+        user ->
+          blocked = Map.get(user, "blocked_channels", MapSet.new())
+
+          if MapSet.member?(blocked, socket.assigns.channel_id) do
+            {:noreply, assign(socket, search_error: gettext("User has blocked this channel."))}
+          else
+            case Exolyte.ChannelDB.add_user(socket.assigns.channel_id, target_id) do
+              {:ok, updated_channel} ->
+                {:noreply,
+                 socket
+                 |> set_channel_info(updated_channel)
+                 |> assign(:search_result, nil)
+                 |> assign(:search_error, nil)}
+
+              {:error, :banned} ->
+                {:noreply,
+                 assign(socket, search_error: gettext("User is banned from this channel."))}
+
+              {:error, reason} ->
+                {:noreply,
+                 assign(socket,
+                   search_error:
+                     gettext("Failed to invite user: %{reason}", reason: inspect(reason))
+                 )}
+            end
+          end
+      end
     end
   end
 

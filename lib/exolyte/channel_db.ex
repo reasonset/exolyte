@@ -7,6 +7,7 @@ defmodule Exolyte.ChannelDB do
       name: name,
       description: "",
       users: MapSet.new(),
+      banned_users: MapSet.new(),
       latest: 1
     }
 
@@ -49,8 +50,28 @@ defmodule Exolyte.ChannelDB do
         {:error, :not_found}
 
       channel ->
-        updated_users = MapSet.put(channel.users, user_id)
-        updated = %{channel | users: updated_users}
+        if MapSet.member?(channel.banned_users, user_id) do
+          {:error, :banned}
+        else
+          updated_users = MapSet.put(channel.users, user_id)
+          updated = %{channel | users: updated_users}
+          CubDB.put(db, {:channel, id}, updated)
+          {:ok, updated}
+        end
+    end
+  end
+
+  def ban_user(id, user_id) do
+    db = Exolyte.DB.get_db()
+
+    case get_channel(id) do
+      nil ->
+        {:error, :not_found}
+
+      channel ->
+        updated_users = MapSet.delete(channel.users, user_id)
+        updated_banned = MapSet.put(channel.banned_users, user_id)
+        updated = %{channel | users: updated_users, banned_users: updated_banned}
         CubDB.put(db, {:channel, id}, updated)
         {:ok, updated}
     end
