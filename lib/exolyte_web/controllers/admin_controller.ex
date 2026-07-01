@@ -80,4 +80,46 @@ defmodule ExolyteWeb.AdminController do
     end
   end
 
+  def add_admin_key(conn, params) do
+    with %{"key" => key, "name" => name} <- params do
+      case Exolyte.PublickeyAuth.add_key(key, name) do
+        :ok ->
+          conn
+          |> send_resp(204, "")
+          |> halt
+
+        _ ->
+          conn
+          |> send_resp(500, "")
+          |> halt
+      end
+    else
+      _ ->
+        conn
+        |> send_resp(400, "")
+        |> halt
+    end
+  end
+
+  def revoke_admin_key(conn, params) do
+    with %{"key" => key} <- params do
+      case Exolyte.PublickeyAuth.revoke_key(key) do
+        :ok ->
+          conn
+          |> send_resp(204, "")
+          |> halt
+
+        _ ->
+          conn
+          |> send_resp(500, "")
+          |> halt
+      end
+    else
+      _ ->
+        conn
+        |> send_resp(400, "")
+        |> halt
+    end
+  end
+
 end

@@ -4,7 +4,13 @@ defmodule Exolyte.PublickeyAuth do
   def add_key(key, name) do
     db = Exolyte.DB.get_db()
     
-    :ok = CubDB.put(db, {:adminkey, key}, name)
+    CubDB.put(db, {:adminkey, key}, name)
+  end
+
+  def revoke_key(key) do
+    db = Exolyte.DB.get_db()
+
+    CubDB.delete(db, {:adminkey, key})
   end
 
   def verify(public_key_spki_base64, signature_base64, challenge_id) do
@@ -26,7 +32,7 @@ defmodule Exolyte.PublickeyAuth do
   def create_challenge do
     cuuid = UUID.uuid4()
     cvalue = UUID.uuid4()
-    path = Path.join([@reset_db, "#{cuuid}.json"])
+    path = Path.join([@admin_authsession_db, "#{cuuid}.json"])
     expire = System.os_time(:second) + 60 * 60 * 24
     
     data = %{
@@ -40,7 +46,7 @@ defmodule Exolyte.PublickeyAuth do
   end
 
   def get_challenge(challenge_id) do
-    path = Path.join([@reset_db, "#{challenge_id}.json"])
+    path = Path.join([@admin_authsession_db, "#{challenge_id}.json"])
 
     if File.exists?(path) do
       {:ok, raw} = File.read(path)
