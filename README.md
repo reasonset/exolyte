@@ -1,5 +1,7 @@
 # exolyte
 
+![Exolyte](/doc_gh/img/exolyte-logo.webp)
+
 ## Synopsis
 
 Minimalist Elixir-based chat system for the web. Built for rapid prototyping and OSS exploration.
