@@ -12,12 +12,21 @@ defmodule ExolyteWeb.Plugs.RequireAuth do
 
       user_id ->
         user = Exolyte.UserDB.get_user(user_id)
-        user_theme = if Map.has_key?(user, :theme), do: user.theme, else: "kawaiifb"
 
-        conn
-        |> assign(:user_id, user_id)
-        |> assign(:current_user, user)
-        |> assign(:user_theme, user_theme)
+        if Map.get(user, :frozen, false) do
+          conn
+          |> clear_session()
+          |> Phoenix.Controller.put_flash(:error, "Account is invalid.")
+          |> Phoenix.Controller.redirect(to: "/login")
+          |> halt()
+        else
+          user_theme = if Map.has_key?(user, :theme), do: user.theme, else: "kawaiifb"
+
+          conn
+          |> assign(:user_id, user_id)
+          |> assign(:current_user, user)
+          |> assign(:user_theme, user_theme)
+        end
 
     end
   end

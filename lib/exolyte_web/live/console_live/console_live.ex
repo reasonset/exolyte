@@ -3,7 +3,19 @@ defmodule ExolyteWeb.ConsoleLive do
   alias Exolyte.PublickeyAuth
 
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, auth_state: :pending, public_key: nil, active_tab: "dashboard")}
+    users = Exolyte.UserDB.list_users() |> Enum.map(fn {_key, user} -> user end) |> Enum.sort_by(& &1.id)
+
+    {:ok, assign(socket, 
+      auth_state: :pending, 
+      public_key: nil, 
+      active_tab: "dashboard",
+      users: users,
+      selected_user_id: nil,
+      selected_user: nil,
+      user_channels: [],
+      generated_reset_link: nil,
+      search_query: ""
+    )}
   end
 
   def render(assigns) do
@@ -69,7 +81,132 @@ defmodule ExolyteWeb.ConsoleLive do
               <% end %>
               
               <%= if @active_tab == "users" do %>
-                <p>User management interface goes here.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
+                  <!-- Left Sidebar: User List & Create Form -->
+                  <div class="md:col-span-1 flex flex-col gap-4 overflow-hidden h-full">
+                    <!-- Create User Form -->
+                    <div class="card bg-base-200 shadow-sm shrink-0">
+                      <div class="card-body p-4">
+                        <h3 class="font-bold text-lg mb-2">Create User</h3>
+                        <form phx-submit="create_user" class="flex flex-col gap-2">
+                          <input type="text" name="user_id" placeholder="User ID (e.g. alice)" class="input input-sm input-bordered w-full" required />
+                          <input type="text" name="display_name" placeholder="Display Name (Optional)" class="input input-sm input-bordered w-full" />
+                          <input type="password" name="password" placeholder="Password" class="input input-sm input-bordered w-full" required />
+                          <button type="submit" class="btn btn-sm btn-primary w-full mt-2">Create</button>
+                        </form>
+                      </div>
+                    </div>
+
+                    <!-- User List -->
+                    <div class="card bg-base-200 shadow-sm flex-1 overflow-hidden flex flex-col">
+                      <div class="p-4 font-bold border-b border-base-300">User List</div>
+                      <div class="p-2 border-b border-base-300">
+                        <form phx-change="search_users" onSubmit="return false;">
+                          <input type="text" name="query" value={@search_query} phx-debounce="300" placeholder="Search by ID or name..." class="input input-sm input-bordered w-full" />
+                        </form>
+                      </div>
+                      <ul class="menu flex-nowrap overflow-y-auto flex-1 p-2">
+                        <%= for user <- Enum.filter(@users, fn u -> 
+                              q = String.downcase(@search_query)
+                              String.contains?(String.downcase(u.id), q) or 
+                              String.contains?(String.downcase(Map.get(u, :display_name, "")), q)
+                            end) do %>
+                          <li>
+                            <a class={if @selected_user_id == user.id, do: "active", else: ""} phx-click="select_user" phx-value-id={user.id}>
+                              <div class="flex items-center gap-2">
+                                <span class={if Map.get(user, :frozen, false), do: "badge badge-error badge-xs", else: "badge badge-success badge-xs"}></span>
+                                <span class="font-medium"><%= user.id %></span>
+                              </div>
+                            </a>
+                          </li>
+                        <% end %>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <!-- Right Side: User Details -->
+                  <div class="md:col-span-2 overflow-y-auto">
+                    <%= if @selected_user do %>
+                      <div class="card bg-base-200 shadow-sm">
+                        <div class="card-body">
+                          <h2 class="card-title text-2xl mb-4 border-b border-base-300 pb-2">
+                            User Details
+                            <%= if Map.get(@selected_user, :frozen, false) do %>
+                              <div class="badge badge-error ml-2">Invalid/Frozen</div>
+                            <% else %>
+                              <div class="badge badge-success ml-2">Active</div>
+                            <% end %>
+                          </h2>
+
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                              <p class="text-sm text-base-content/70">User ID</p>
+                              <p class="font-bold text-lg"><%= @selected_user.id %></p>
+                            </div>
+                            <div>
+                              <p class="text-sm text-base-content/70">Display Name</p>
+                              <p class="font-bold text-lg"><%= @selected_user.display_name %></p>
+                            </div>
+                          </div>
+
+                          <div class="flex gap-2 mb-6">
+                            <button class={if Map.get(@selected_user, :frozen, false), do: "btn btn-success", else: "btn btn-error"} phx-click="toggle_freeze">
+                              <%= if Map.get(@selected_user, :frozen, false), do: "Unfreeze Account", else: "Freeze Account" %>
+                            </button>
+                            
+                            <button class="btn btn-outline" phx-click="generate_reset_link">
+                              Generate Reset Link
+                            </button>
+                          </div>
+
+                          <%= if @generated_reset_link do %>
+                            <div class="alert alert-info shadow-sm mb-6">
+                              <div>
+                                <h3 class="font-bold">Password Reset Link Generated:</h3>
+                                <div class="text-sm break-all font-mono mt-2 bg-base-100 p-2 rounded w-full">
+                                  <%= @generated_reset_link %>
+                                </div>
+                              </div>
+                            </div>
+                          <% end %>
+
+                          <h3 class="font-bold text-xl mb-4 border-b border-base-300 pb-2">Joined Channels</h3>
+                          <%= if length(@user_channels) > 0 do %>
+                            <div class="overflow-x-auto">
+                              <table class="table w-full">
+                                <thead>
+                                  <tr>
+                                    <th>Channel ID</th>
+                                    <th>Name</th>
+                                    <th>Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <%= for channel <- @user_channels do %>
+                                    <tr>
+                                      <td><%= channel.id %></td>
+                                      <td><%= channel.name %></td>
+                                      <td>
+                                        <button class="btn btn-xs btn-error" phx-click="remove_from_channel" phx-value-channel_id={channel.id}>Remove</button>
+                                      </td>
+                                    </tr>
+                                  <% end %>
+                                </tbody>
+                              </table>
+                            </div>
+                          <% else %>
+                            <p class="text-base-content/70 text-sm">This user is not a member of any channels.</p>
+                          <% end %>
+
+                        </div>
+                      </div>
+                    <% else %>
+                      <div class="flex items-center justify-center h-full text-base-content/50">
+                        <p>Select a user from the list to view details.</p>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
               <% end %>
               
               <%= if @active_tab == "channels" do %>
@@ -130,7 +267,11 @@ defmodule ExolyteWeb.ConsoleLive do
   end
 
   def handle_event("change_tab", %{"tab" => tab}, socket) do
-    {:noreply, assign(socket, active_tab: tab, generated_link: nil, generated_qr: nil)}
+    {:noreply, assign(socket, active_tab: tab, generated_link: nil, generated_qr: nil, search_query: "")}
+  end
+
+  def handle_event("search_users", %{"query" => query}, socket) do
+    {:noreply, assign(socket, search_query: query)}
   end
 
   def handle_event("generate_link", _params, socket) do
@@ -144,6 +285,66 @@ defmodule ExolyteWeb.ConsoleLive do
       |> EQRCode.svg(width: 250)
 
     {:noreply, assign(socket, generated_link: link, generated_qr: qr_svg)}
+  end
+
+  def handle_event("select_user", %{"id" => id}, socket) do
+    user = Exolyte.UserDB.get_user(id)
+    channels = Exolyte.ChannelDB.channels_for_user(id)
+    
+    {:noreply, assign(socket, 
+      selected_user_id: id,
+      selected_user: user,
+      user_channels: channels,
+      generated_reset_link: nil
+    )}
+  end
+
+  def handle_event("create_user", %{"user_id" => user_id, "display_name" => display_name, "password" => password}, socket) do
+    display_name = if String.trim(display_name) == "", do: user_id, else: display_name
+    Exolyte.UserDB.put_user(user_id, display_name, password)
+    
+    users = Exolyte.UserDB.list_users() |> Enum.map(fn {_key, user} -> user end) |> Enum.sort_by(& &1.id)
+    {:noreply, assign(socket, users: users)}
+  end
+
+  def handle_event("toggle_freeze", _params, socket) do
+    user_id = socket.assigns.selected_user_id
+    if user_id do
+      user = Exolyte.UserDB.get_user(user_id)
+      frozen = Map.get(user, :frozen, false)
+      Exolyte.UserDB.update_user(user_id, %{frozen: !frozen})
+      
+      # Refresh data
+      updated_user = Exolyte.UserDB.get_user(user_id)
+      users = Exolyte.UserDB.list_users() |> Enum.map(fn {_key, u} -> u end) |> Enum.sort_by(& &1.id)
+      
+      {:noreply, assign(socket, selected_user: updated_user, users: users)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("generate_reset_link", _params, socket) do
+    user_id = socket.assigns.selected_user_id
+    if user_id do
+      uuid = Exolyte.UserDB.create_reset_link(user_id)
+      host = ExolyteWeb.Endpoint.url()
+      link = "#{host}/reset/#{uuid}"
+      {:noreply, assign(socket, generated_reset_link: link)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("remove_from_channel", %{"channel_id" => channel_id}, socket) do
+    user_id = socket.assigns.selected_user_id
+    if user_id do
+      Exolyte.ChannelDB.remove_user(channel_id, user_id)
+      channels = Exolyte.ChannelDB.channels_for_user(user_id)
+      {:noreply, assign(socket, user_channels: channels)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("request_challenge", _params, socket) do

@@ -65,6 +65,9 @@ defmodule Exolyte.UserDB do
 
   def authenticate(id, plain_pw) do
     case get_user(id) do
+      %{password_hash: hash, frozen: true} ->
+        {:error, :unauthorized}
+
       %{password_hash: hash} ->
         if Bcrypt.verify_pass(plain_pw, hash), do: {:ok, id}, else: {:error, :unauthorized}
 
