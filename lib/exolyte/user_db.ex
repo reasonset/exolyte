@@ -109,4 +109,43 @@ defmodule Exolyte.UserDB do
     hashed_pw = Bcrypt.hash_pwd_salt(plain_pw)
     update_user(id, %{password_hash: hashed_pw})
   end
+
+  @create_db "priv/user_create"
+
+  def create_user_link() do
+    File.mkdir_p!(@create_db)
+    link_uuid = UUID.uuid4()
+    path = Path.join([@create_db, "#{link_uuid}.json"])
+    expire = System.os_time(:second) + 60 * 60 * 24
+
+    data = %{
+      expire_at: expire
+    }
+
+    File.write!(path, Jason.encode!(data))
+
+    link_uuid
+  end
+
+  def get_user_link(link_uuid) do
+    path = Path.join([@create_db, "#{link_uuid}.json"])
+
+    if File.exists?(path) do
+      {:ok, raw} = File.read(path)
+      data = Jason.decode!(raw)
+
+      if data["expire_at"] < System.os_time(:second) do
+        {:error, :expired}
+      else
+        {:ok, link_uuid}
+      end
+    else
+      {:error, :not_found}
+    end
+  end
+
+  def delete_user_link(link_uuid) do
+    path = Path.join([@create_db, "#{link_uuid}.json"])
+    File.rm(path)
+  end
 end

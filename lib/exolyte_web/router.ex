@@ -38,6 +38,8 @@ defmodule ExolyteWeb.Router do
     post "/login", SessionController, :create
     get "/reset/:link_uuid", UserController, :show
     post "/reset/:link_uuid", UserController, :reset
+    get "/register/:link_uuid", RegisterController, :new
+    post "/register/:link_uuid", RegisterController, :create
     get "/not_found", ErrorController, :notfound
     get "/notification_sound.ogg", FileController, :bipo
     get "/notification_foreground_sound.ogg", FileController, :chi
