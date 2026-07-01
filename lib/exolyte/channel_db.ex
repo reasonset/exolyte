@@ -1,6 +1,7 @@
 defmodule Exolyte.ChannelDB do
   def create_channel(id, name) do
     db = Exolyte.DB.get_db()
+    now = DateTime.utc_now()
 
     channel_data = %{
       id: id,
@@ -8,7 +9,9 @@ defmodule Exolyte.ChannelDB do
       description: "",
       users: MapSet.new(),
       banned_users: MapSet.new(),
-      latest: 1
+      latest: 1,
+      created_at: DateTime.to_unix(now),
+      created_at_iso: DateTime.to_iso8601(now)
     }
 
     :ok = CubDB.put(db, {:channel, id}, channel_data)
@@ -39,7 +42,13 @@ defmodule Exolyte.ChannelDB do
 
   def delete_channel(id) do
     db = Exolyte.DB.get_db()
-    CubDB.delete(db, {:channel, id})
+    try do
+      Exolyte.ChannelLog.delete_log_dir(id)
+      CubDB.delete(db, {:channel, id})
+    rescue
+      e in File.Error ->
+        {:error, {:log_dir_failed, e}}
+    end
   end
 
   def add_user(id, user_id) do

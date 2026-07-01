@@ -16,9 +16,6 @@ defmodule Exolyte.UserDB do
   ]
 
   @reset_db "priv/user_reset"
-  @user_default %{
-    "blocked_channels" => MapSet.new()
-  }
 
   def put_user(id, name, plain_pw) do
     db = Exolyte.DB.get_db()
@@ -26,8 +23,15 @@ defmodule Exolyte.UserDB do
     hashed_pw = Bcrypt.hash_pwd_salt(plain_pw)
     user_color = Enum.random(@name_colors)
 
+    now = DateTime.utc_now()
+    user_default = %{
+      blocked_channels: MapSet.new(),
+      created_at: DateTime.to_unix(now),
+      created_at_iso: DateTime.to_iso8601(now)
+    }
+
     user =
-      Map.merge(@user_default, %{
+      Map.merge(user_default, %{
         id: normalized_id,
         display_name: name,
         password_hash: hashed_pw,

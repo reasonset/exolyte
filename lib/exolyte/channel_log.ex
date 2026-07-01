@@ -23,6 +23,11 @@ defmodule Exolyte.ChannelLog do
     )
   end
 
+  def delete_log_dir(channel_id) do
+    dir = Path.join(@base_dir, channel_id)
+    File.rm_rf!(dir)
+  end
+
   def create_message(content) do
     timestamp = System.os_time(:second)
 
