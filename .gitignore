@@ -12,6 +12,7 @@ erl_crash.dump
 /priv/reset_link
 /priv/user_reset
 /priv/static/assets
+/priv/auth_session
 logs
 /site_local
 AGENT.md
