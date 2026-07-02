@@ -10,6 +10,7 @@ defmodule Exolyte.ChannelDB do
       users: MapSet.new(),
       banned_users: MapSet.new(),
       latest: 1,
+      chop: nil,
       created_at: DateTime.to_unix(now),
       created_at_iso: DateTime.to_iso8601(now)
     }
@@ -97,6 +98,20 @@ defmodule Exolyte.ChannelDB do
         updated_users = MapSet.delete(channel.users, user_id)
         updated = %{channel | users: updated_users}
         CubDB.put(db, {:channel, id}, updated)
+    end
+  end
+
+  def set_chop(id, user_id) do
+    db = Exolyte.DB.get_db()
+
+    case get_channel(id) do
+      nil ->
+        {:error, :not_found}
+
+      channel ->
+        updated = %{channel | chop: user_id}
+        CubDB.put(db, {:channel, id}, updated)
+        {:ok, updated}
     end
   end
 

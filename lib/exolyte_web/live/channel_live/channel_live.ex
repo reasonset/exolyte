@@ -18,7 +18,8 @@ defmodule ExolyteWeb.ChannelLive do
        |> assign(:oldest_index, nil)
        |> assign(:has_more, false)
        |> assign(:search_result, nil)
-       |> assign(:search_error, nil)}
+       |> assign(:search_error, nil)
+       |> assign(:kick_target, nil)}
     else
       _ -> {:ok, push_navigate(socket, to: ~p"/not_found")}
     end
@@ -27,7 +28,7 @@ defmodule ExolyteWeb.ChannelLive do
   def render(assigns) do
     ~H"""
     <div class="drawer">
-      <input id="channel-drawer" type="checkbox" class="drawer-toggle" />
+      <input id="channel-drawer" type="checkbox" class="drawer-toggle" phx-update="ignore" />
       <div class="drawer-content flex flex-col h-dvh">
         <div class="navbar bg-base-100 shadow-sm">
           <label for="channel-drawer" class="btn drawer-button"><%= @channel_info.name %></label>
@@ -67,7 +68,12 @@ defmodule ExolyteWeb.ChannelLive do
           <ul>
             <li><a href="/mypage" phx-link="navigate"><%= @current_user.display_name %></a></li>
           </ul>
-          <ul class="menu bg-base-200 rounded-box flex-1">
+
+          <%= if @channel_info.description && String.trim(@channel_info.description) != "" do %>
+            <div class="px-4 py-2 text-xs text-base-content/60 italic break-words whitespace-pre-wrap"><%= @channel_info.description %></div>
+          <% end %>
+
+          <ul class="menu bg-base-200 rounded-box flex-1 mt-2">
             <%= for user <- @channel_users do %>
               <li style={"color: #{user.user_color}"}>
                 <%= user.display_name %>
@@ -99,6 +105,9 @@ defmodule ExolyteWeb.ChannelLive do
           <% end %>
 
           <div class="mt-auto flex flex-col gap-2 pt-4">
+            <%= if @channel_info.chop == @current_user.id do %>
+              <label for="settings-modal" class="btn btn-outline btn-info w-full"><%= gettext("Channel Settings") %></label>
+            <% end %>
             <label for="leave-modal" class="btn btn-outline btn-warning w-full"><%= gettext("Leave channel") %></label>
             <label for="block-modal" class="btn btn-outline btn-error w-full"><%= gettext("Block channel") %></label>
           </div>
@@ -106,7 +115,7 @@ defmodule ExolyteWeb.ChannelLive do
       </div>
 
       <!-- Leave Channel Modal -->
-      <input type="checkbox" id="leave-modal" class="modal-toggle" />
+      <input type="checkbox" id="leave-modal" class="modal-toggle" phx-update="ignore" />
       <div class="modal" role="dialog">
         <div class="modal-box">
           <h3 class="text-lg font-bold"><%= gettext("Leave channel") %></h3>
@@ -120,7 +129,7 @@ defmodule ExolyteWeb.ChannelLive do
       </div>
 
       <!-- Block Channel Modal -->
-      <input type="checkbox" id="block-modal" class="modal-toggle" />
+      <input type="checkbox" id="block-modal" class="modal-toggle" phx-update="ignore" />
       <div class="modal" role="dialog">
         <div class="modal-box">
           <h3 class="text-lg font-bold"><%= gettext("Block channel") %></h3>
@@ -131,6 +140,62 @@ defmodule ExolyteWeb.ChannelLive do
           </div>
         </div>
         <label class="modal-backdrop" for="block-modal"><%= gettext("Close") %></label>
+      </div>
+
+      <!-- Channel Settings Modal -->
+      <%= if @channel_info.chop == @current_user.id do %>
+        <input type="checkbox" id="settings-modal" class="modal-toggle" phx-update="ignore" />
+        <div class="modal" role="dialog">
+          <div class="modal-box">
+            <h3 class="text-lg font-bold mb-4"><%= gettext("Channel Settings") %></h3>
+            
+            <form phx-submit="update_description" class="mb-6">
+              <div class="form-control w-full">
+                <label class="label">
+                  <span class="label-text font-bold"><%= gettext("Channel Description") %></span>
+                  <span class="label-text-alt text-base-content/60"><%= gettext("Max 140 chars") %></span>
+                </label>
+                <textarea name="description" class="textarea textarea-bordered textarea-md w-full resize-none focus:textarea-primary focus:shadow-sm" maxlength="140" rows="3" placeholder={gettext("Describe the purpose of this channel...")}><%= @channel_info.description %></textarea>
+                <div class="mt-3 flex justify-end">
+                  <button type="submit" class="btn btn-sm btn-primary"><%= gettext("Save Description") %></button>
+                </div>
+              </div>
+            </form>
+
+            <div class="divider"></div>
+
+            <h4 class="font-bold mb-2"><%= gettext("Kick User") %></h4>
+            <ul class="menu bg-base-200 rounded-box max-h-40 overflow-y-auto">
+              <%= for user <- @channel_users do %>
+                <%= if user.id != @current_user.id do %>
+                  <li class="flex flex-row justify-between items-center pr-2">
+                    <span class="flex-1"><%= user.display_name %></span>
+                    <button class="btn btn-xs btn-error" phx-click="confirm_kick" phx-value-user_id={user.id}><%= gettext("Kick") %></button>
+                  </li>
+                <% end %>
+              <% end %>
+            </ul>
+
+            <div class="modal-action mt-6">
+              <label for="settings-modal" class="btn"><%= gettext("Close") %></label>
+            </div>
+          </div>
+          <label class="modal-backdrop" for="settings-modal"><%= gettext("Close") %></label>
+        </div>
+      <% end %>
+
+      <!-- Kick Confirmation Modal -->
+      <div class={"modal #{if @kick_target, do: "modal-open", else: ""}"} role="dialog">
+        <div class="modal-box">
+          <h3 class="text-lg font-bold text-error"><%= gettext("Kick User") %></h3>
+          <p class="py-4">
+            <%= gettext("Are you sure you want to kick and ban %{user}?", user: Map.get(@channel_user_names, @kick_target, @kick_target)) %>
+          </p>
+          <div class="modal-action">
+            <button class="btn" phx-click="cancel_kick"><%= gettext("Cancel") %></button>
+            <button class="btn btn-error" phx-click="execute_kick"><%= gettext("Kick User") %></button>
+          </div>
+        </div>
       </div>
     </div>
     """
@@ -261,31 +326,89 @@ defmodule ExolyteWeb.ChannelLive do
 
         user ->
           blocked = Map.get(user, "blocked_channels", MapSet.new())
+          chop_id = socket.assigns.channel_info.chop
 
-          if MapSet.member?(blocked, socket.assigns.channel_id) do
-            {:noreply, assign(socket, search_error: gettext("User has blocked this channel."))}
-          else
-            case Exolyte.ChannelDB.add_user(socket.assigns.channel_id, target_id) do
-              {:ok, updated_channel} ->
-                {:noreply,
-                 socket
-                 |> set_channel_info(updated_channel)
-                 |> assign(:search_result, nil)
-                 |> assign(:search_error, nil)}
-
-              {:error, :banned} ->
-                {:noreply,
-                 assign(socket, search_error: gettext("User is banned from this channel."))}
-
-              {:error, reason} ->
-                {:noreply,
-                 assign(socket,
-                   search_error:
-                     gettext("Failed to invite user: %{reason}", reason: inspect(reason))
-                 )}
+          blocked_chop_dm =
+            if chop_id do
+              dm_id = Exolyte.Friend.dm_channel_id(chop_id, target_id)
+              MapSet.member?(blocked, dm_id)
+            else
+              false
             end
+
+          cond do
+            MapSet.member?(blocked, socket.assigns.channel_id) ->
+              {:noreply, assign(socket, search_error: gettext("User has blocked this channel."))}
+
+            blocked_chop_dm ->
+              {:noreply, assign(socket, search_error: gettext("User has blocked the channel operator."))}
+
+            true ->
+              case Exolyte.ChannelDB.add_user(socket.assigns.channel_id, target_id) do
+                {:ok, updated_channel} ->
+                  {:noreply,
+                   socket
+                   |> set_channel_info(updated_channel)
+                   |> assign(:search_result, nil)
+                   |> assign(:search_error, nil)}
+
+                {:error, :banned} ->
+                  {:noreply,
+                   assign(socket, search_error: gettext("User is banned from this channel."))}
+
+                {:error, reason} ->
+                  {:noreply,
+                   assign(socket,
+                     search_error:
+                       gettext("Failed to invite user: %{reason}", reason: inspect(reason))
+                   )}
+              end
           end
       end
+    end
+  end
+
+  def handle_event("update_description", %{"description" => description}, socket) do
+    if socket.assigns.current_user.id == socket.assigns.channel_info.chop do
+      safe_desc = String.slice(description, 0, 140)
+      
+      # Since update_channel doesn't return {:ok, channel}, we get the updated channel via get_channel
+      Exolyte.ChannelDB.update_channel(socket.assigns.channel_id, %{description: safe_desc})
+      updated_channel = Exolyte.ChannelDB.get_channel(socket.assigns.channel_id)
+      
+      {:noreply, set_channel_info(updated_channel, socket)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("confirm_kick", %{"user_id" => target_id}, socket) do
+    if socket.assigns.current_user.id == socket.assigns.channel_info.chop do
+      {:noreply, assign(socket, kick_target: target_id)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("cancel_kick", _params, socket) do
+    {:noreply, assign(socket, kick_target: nil)}
+  end
+
+  def handle_event("execute_kick", _params, socket) do
+    target_id = socket.assigns.kick_target
+
+    if target_id && socket.assigns.current_user.id == socket.assigns.channel_info.chop do
+      case Exolyte.ChannelDB.ban_user(socket.assigns.channel_id, target_id) do
+        {:ok, updated_channel} ->
+          {:noreply, 
+           socket
+           |> set_channel_info(updated_channel)
+           |> assign(:kick_target, nil)}
+        _ ->
+          {:noreply, assign(socket, kick_target: nil)}
+      end
+    else
+      {:noreply, assign(socket, kick_target: nil)}
     end
   end
 

@@ -14,7 +14,9 @@ defmodule ExolyteWeb.ConsoleLive do
       selected_user: nil,
       user_channels: [],
       generated_reset_link: nil,
-      search_query: ""
+      search_query: "",
+      settings: Exolyte.Settings.get(),
+      settings_saved: false
     )}
   end
 
@@ -237,7 +239,50 @@ defmodule ExolyteWeb.ConsoleLive do
               <% end %>
               
               <%= if @active_tab == "settings" do %>
-                <p>System settings go here.</p>
+                <div class="card bg-base-200 shadow-xl max-w-2xl mt-6">
+                  <div class="card-body">
+                    <h2 class="card-title mb-4">Instance Settings</h2>
+                    
+                    <%= if @settings_saved do %>
+                      <div class="alert alert-success shadow-sm mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span>Settings saved successfully.</span>
+                      </div>
+                    <% end %>
+
+                    <form phx-submit="save_settings" class="flex flex-col gap-6">
+                      <!-- Instance Name -->
+                      <div class="form-control w-full">
+                        <label class="label">
+                          <span class="label-text font-bold">Instance Name</span>
+                        </label>
+                        <input type="text" name="instance_name" value={Map.get(@settings, "instance_name", "")} class="input input-bordered w-full" required />
+                      </div>
+
+                      <!-- Allow User Invites -->
+                      <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-4">
+                          <input type="checkbox" name="allow_user_invites" value="true" checked={Map.get(@settings, "allow_user_invites", false)} class="toggle toggle-primary" />
+                          <span class="label-text font-bold">Allow Users to Invite Others</span>
+                        </label>
+                        <p class="text-sm text-base-content/70 mt-1 ml-16">If enabled, regular users can generate invitation links.</p>
+                      </div>
+
+                      <!-- Allow Channel Creation -->
+                      <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-4">
+                          <input type="checkbox" name="allow_channel_creation" value="true" checked={Map.get(@settings, "allow_channel_creation", false)} class="toggle toggle-primary" />
+                          <span class="label-text font-bold">Allow Users to Create Channels</span>
+                        </label>
+                        <p class="text-sm text-base-content/70 mt-1 ml-16">If enabled, regular users can create new channels.</p>
+                      </div>
+
+                      <div class="card-actions justify-end mt-4">
+                        <button type="submit" class="btn btn-primary">Save Settings</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
               <% end %>
             </div>
           </div> 
@@ -267,7 +312,20 @@ defmodule ExolyteWeb.ConsoleLive do
   end
 
   def handle_event("change_tab", %{"tab" => tab}, socket) do
-    {:noreply, assign(socket, active_tab: tab, generated_link: nil, generated_qr: nil, search_query: "")}
+    {:noreply, assign(socket, active_tab: tab, generated_link: nil, generated_qr: nil, search_query: "", settings_saved: false)}
+  end
+
+  def handle_event("save_settings", params, socket) do
+    # When checkboxes are unchecked, they don't send any value. We must explicitly set them to false if missing.
+    settings_to_save = %{
+      "instance_name" => Map.get(params, "instance_name", ""),
+      "allow_user_invites" => Map.get(params, "allow_user_invites", "false") == "true",
+      "allow_channel_creation" => Map.get(params, "allow_channel_creation", "false") == "true"
+    }
+    
+    updated_settings = Exolyte.Settings.update(settings_to_save)
+    
+    {:noreply, assign(socket, settings: updated_settings, settings_saved: true)}
   end
 
   def handle_event("search_users", %{"query" => query}, socket) do

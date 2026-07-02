@@ -185,7 +185,7 @@ msgstr "招待"
 #: lib/exolyte_web/live/channel_live/channel_live.ex:80
 #, elixir-autogen, elixir-format
 msgid "Invite User"
-msgstr "無効なユーザー"
+msgstr "ユーザーを招待"
 
 #: lib/exolyte_web/live/channel_live/channel_live.ex:116
 #, elixir-autogen, elixir-format

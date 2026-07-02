@@ -23,7 +23,11 @@ defmodule ExolyteWeb.UserLive.Show do
      |> assign(:blocked_channels, blocked_channels)
      |> assign(:unblock_target, nil)
      |> assign(:search_result, nil)
-     |> assign(:search_error, nil)}
+     |> assign(:search_error, nil)
+     |> assign(:settings, Exolyte.Settings.get())
+     |> assign(:generated_link, nil)
+     |> assign(:generated_qr, nil)
+     |> assign(:channel_error, nil)}
   end
 
   def render(assigns) do
@@ -133,6 +137,41 @@ defmodule ExolyteWeb.UserLive.Show do
           </form>
       </fieldset>
 
+      <%= if Map.get(@settings, "allow_user_invites", false) do %>
+        <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4 mt-4">
+          <legend class="fieldset-legend"><%= gettext("Invite User") %></legend>
+          <div class="text-sm text-base-content/70 mb-4">
+            Generate a one-time link for a user to register their account. The link expires in 24 hours.
+          </div>
+          <button class="btn btn-primary w-full" phx-click="generate_link">Generate Link</button>
+          
+          <%= if @generated_link do %>
+            <div class="mt-4 flex flex-col items-center gap-4 w-full">
+              <div class="bg-white p-4 rounded-xl shadow-sm inline-block">
+                <%= Phoenix.HTML.raw(@generated_qr) %>
+              </div>
+              <div class="form-control w-full">
+                <input type="text" value={@generated_link} class="input input-sm input-bordered w-full" readonly />
+              </div>
+            </div>
+          <% end %>
+        </fieldset>
+      <% end %>
+
+      <%= if Map.get(@settings, "allow_channel_creation", false) do %>
+        <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4 mt-4">
+          <legend class="fieldset-legend"><%= gettext("Create Channel") %></legend>
+          <form phx-submit="create_channel">
+            <label class="label"><%= gettext("Channel ID") %></label>
+            <input type="text" name="channel_id" class="input w-full" placeholder="e.g. general_chat" required pattern="^[a-z][a-z0-9_]{4,30}[a-z0-9]$" title="Must be 6-32 chars, start with lowercase letter, end with lowercase letter or number, and contain only lowercase letters, numbers, and underscores." />
+            <%= if @channel_error do %>
+              <div class="text-error text-sm mt-2"><%= @channel_error %></div>
+            <% end %>
+            <button class="btn btn-primary mt-4 w-full" type="submit"><%= gettext("Create") %></button>
+          </form>
+        </fieldset>
+      <% end %>
+
       <!-- Unblock Confirmation Modal -->
       <div class={"modal #{if @unblock_target, do: "modal-open", else: ""}"} role="dialog">
         <div class="modal-box">
@@ -227,6 +266,43 @@ defmodule ExolyteWeb.UserLive.Show do
       {:noreply, assign(socket, unblock_target: nil, blocked_channels: blocked_channels)}
     else
       {:noreply, socket}
+    end
+  end
+
+  def handle_event("generate_link", _params, socket) do
+    uuid = Exolyte.UserDB.create_user_link()
+    host = ExolyteWeb.Endpoint.url()
+    link = "#{host}/register/#{uuid}"
+    
+    qr_svg = 
+      link
+      |> EQRCode.encode()
+      |> EQRCode.svg(width: 150)
+
+    {:noreply, assign(socket, generated_link: link, generated_qr: qr_svg)}
+  end
+
+  def handle_event("create_channel", %{"channel_id" => channel_id}, socket) do
+    user_id = socket.assigns.user_id
+    if Regex.match?(~r/^[a-z][a-z0-9_]{4,30}[a-z0-9]$/, channel_id) do
+      # check if exists
+      case Exolyte.ChannelDB.get_channel(channel_id) do
+        nil ->
+          case Exolyte.ChannelDB.create_channel(channel_id, channel_id) do
+            :ok ->
+              Exolyte.ChannelDB.set_chop(channel_id, user_id)
+              Exolyte.ChannelDB.add_user(channel_id, user_id)
+              
+              {:noreply, push_navigate(socket, to: "/channel/#{channel_id}")}
+              
+            {:error, _} ->
+              {:noreply, assign(socket, channel_error: gettext("Failed to create channel."))}
+          end
+        _ ->
+          {:noreply, assign(socket, channel_error: gettext("Channel already exists."))}
+      end
+    else
+      {:noreply, assign(socket, channel_error: gettext("Invalid channel ID format."))}
     end
   end
 end
