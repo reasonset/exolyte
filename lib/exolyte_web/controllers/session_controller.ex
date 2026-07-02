@@ -20,4 +20,10 @@ defmodule ExolyteWeb.SessionController do
         |> render(:login)
     end
   end
+
+  def delete(conn, _params) do
+    conn
+    |> clear_session()
+    |> redirect(to: "/login")
+  end
 end

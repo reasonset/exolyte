@@ -1,13 +1,18 @@
 defmodule Exolyte.ChannelDB do
   def create_channel(id, name) do
     db = Exolyte.DB.get_db()
+    now = DateTime.utc_now()
 
     channel_data = %{
       id: id,
       name: name,
       description: "",
       users: MapSet.new(),
-      latest: 1
+      banned_users: MapSet.new(),
+      latest: 1,
+      chop: nil,
+      created_at: DateTime.to_unix(now),
+      created_at_iso: DateTime.to_iso8601(now)
     }
 
     :ok = CubDB.put(db, {:channel, id}, channel_data)
@@ -38,7 +43,13 @@ defmodule Exolyte.ChannelDB do
 
   def delete_channel(id) do
     db = Exolyte.DB.get_db()
-    CubDB.delete(db, {:channel, id})
+    try do
+      Exolyte.ChannelLog.delete_log_dir(id)
+      CubDB.delete(db, {:channel, id})
+    rescue
+      e in File.Error ->
+        {:error, {:log_dir_failed, e}}
+    end
   end
 
   def add_user(id, user_id) do
@@ -49,8 +60,28 @@ defmodule Exolyte.ChannelDB do
         {:error, :not_found}
 
       channel ->
-        updated_users = MapSet.put(channel.users, user_id)
-        updated = %{channel | users: updated_users}
+        if MapSet.member?(channel.banned_users, user_id) do
+          {:error, :banned}
+        else
+          updated_users = MapSet.put(channel.users, user_id)
+          updated = %{channel | users: updated_users}
+          CubDB.put(db, {:channel, id}, updated)
+          {:ok, updated}
+        end
+    end
+  end
+
+  def ban_user(id, user_id) do
+    db = Exolyte.DB.get_db()
+
+    case get_channel(id) do
+      nil ->
+        {:error, :not_found}
+
+      channel ->
+        updated_users = MapSet.delete(channel.users, user_id)
+        updated_banned = MapSet.put(channel.banned_users, user_id)
+        updated = %{channel | users: updated_users, banned_users: updated_banned}
         CubDB.put(db, {:channel, id}, updated)
         {:ok, updated}
     end
@@ -67,6 +98,20 @@ defmodule Exolyte.ChannelDB do
         updated_users = MapSet.delete(channel.users, user_id)
         updated = %{channel | users: updated_users}
         CubDB.put(db, {:channel, id}, updated)
+    end
+  end
+
+  def set_chop(id, user_id) do
+    db = Exolyte.DB.get_db()
+
+    case get_channel(id) do
+      nil ->
+        {:error, :not_found}
+
+      channel ->
+        updated = %{channel | chop: user_id}
+        CubDB.put(db, {:channel, id}, updated)
+        {:ok, updated}
     end
   end
 

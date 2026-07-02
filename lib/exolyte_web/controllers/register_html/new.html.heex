@@ -1,0 +1,46 @@
+<div class="min-h-screen flex items-center justify-center bg-base-200">
+  <div class="card w-96 bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title text-center block mb-4">Create Your Account</h2>
+      
+      <%= if @error_message do %>
+        <div class="alert alert-error mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <span><%= @error_message %></span>
+        </div>
+      <% end %>
+
+      <form action={~p"/register/#{@link_uuid}"} method="post">
+        <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+        
+        <div class="form-control w-full max-w-xs mb-4">
+          <label class="label">
+            <span class="label-text">User ID</span>
+          </label>
+          <input type="text" name="user[user_id]" placeholder="e.g. john_doe123" class="input input-bordered w-full max-w-xs" required pattern="^[a-z][a-z0-9_]{1,18}[a-z0-9]$" title="Must be 3-20 chars, start with lowercase letter, end with lowercase letter or number, and contain only lowercase letters, numbers, and underscores." />
+          <label class="label">
+            <span class="label-text-alt text-base-content/70">Only lowercase letters, numbers, and underscores</span>
+          </label>
+        </div>
+
+        <div class="form-control w-full max-w-xs mb-4">
+          <label class="label">
+            <span class="label-text">Display Name (Optional)</span>
+          </label>
+          <input type="text" name="user[display_name]" placeholder="e.g. John Doe" class="input input-bordered w-full max-w-xs" />
+        </div>
+
+        <div class="form-control w-full max-w-xs mb-6">
+          <label class="label">
+            <span class="label-text">Password</span>
+          </label>
+          <input type="password" name="user[password]" placeholder="Minimum 8 characters" class="input input-bordered w-full max-w-xs" required minlength="8" />
+        </div>
+
+        <div class="form-control mt-2">
+          <button type="submit" class="btn btn-primary w-full">Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

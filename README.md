@@ -1,5 +1,7 @@
 # exolyte
 
+![Exolyte](/doc_gh/img/exolyte-logo.webp)
+
 ## Synopsis
 
 Minimalist Elixir-based chat system for the web. Built for rapid prototyping and OSS exploration.
@@ -22,6 +24,7 @@ Minimalist Elixir-based chat system for the web. Built for rapid prototyping and
 
 * Clone git repository `git clone https://github.com/reasonset/exolyte.git`
 * `cd exolyte`
+* Create directories `mix run scripts/setup.exs`
 * Get dependencies `mix deps.get`
 * Compile `mix compile`
 * Start server `mix phx.server`
@@ -63,7 +66,8 @@ Reset link expires after 24 hours passed.
 
 * Create secret key with `mix phx.gen.secret`
 * Clone repository on prod server
-* `cd`
+* `cd exolyte`
+* Create directories `mix run scripts/setup.exs`
 * `mix deps.get`
 * Configure the `admin.token` settings in `config/prod.secret.exs`
 * `SECRET_KEY_BASE=${secret_key} EXOLYTE_HOST=${exolyte_host_name} MIX_ENV=prod mix compile`
@@ -88,6 +92,7 @@ Replace the `Environment` line with the appropriate values.
 * `/mypage` -> User Mypage
 * `/login` -> Login page
 * `/channel/:channel_id` -> Chat channel
+* `/admin/console` -> Administrator Console
 
 ## Live administration
 
@@ -104,3 +109,30 @@ mix run scripts/api_cli.exs user_reset <user_id>
 mix run scripts/api_cli.exs channel_create <channel_id> <channel_name>
 mix run scripts/api_cli.exs channel_join <channel_id> <user_id>
 ```
+
+## Admin Console
+
+You can access the administration interface using LiveView by visiting `/admin/console`.
+
+Administrator accounts are completely separate from chat users.
+Access to the administration interface uses public-key authentication with a key pair generated for each browser.
+If no valid key pair is registered, the screen will display the command you need to run.
+
+```
+mix run scripts/api_cli.exs add_admin_key <name> <publickey>
+```
+
+`name` refers to the administrator account ID; however, there is currently no mechanism for distinguishing between administrator accounts.
+Permission settings may be available in the future.
+
+To delete a registered public key, use the following command:
+
+```
+mix run scripts/api_cli.exs revoke_admin_key <publickey>
+```
+
+## Instance Settings
+
+Dynamically configurable instance settings are stored in `/priv/settings.json`. These settings can also be configured from the Admin Console.
+
+These settings include whether users are allowed to create invitations or channels.

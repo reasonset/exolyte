@@ -23,12 +23,20 @@ defmodule Exolyte.UserDB do
     hashed_pw = Bcrypt.hash_pwd_salt(plain_pw)
     user_color = Enum.random(@name_colors)
 
-    user = %{
-      id: normalized_id,
-      display_name: name,
-      password_hash: hashed_pw,
-      user_color: user_color
+    now = DateTime.utc_now()
+    user_default = %{
+      blocked_channels: MapSet.new(),
+      created_at: DateTime.to_unix(now),
+      created_at_iso: DateTime.to_iso8601(now)
     }
+
+    user =
+      Map.merge(user_default, %{
+        id: normalized_id,
+        display_name: name,
+        password_hash: hashed_pw,
+        user_color: user_color
+      })
 
     CubDB.put(db, {:user, normalized_id}, user)
     user
@@ -53,6 +61,44 @@ defmodule Exolyte.UserDB do
     CubDB.delete(db, {:user, id})
   end
 
+  def block_channel(id, channel_id) do
+    db = Exolyte.DB.get_db()
+    normalized_id = String.downcase(id)
+
+    case get_user(normalized_id) do
+      nil ->
+        {:error, :not_found}
+
+      user ->
+        blocked = Map.get(user, "blocked_channels", MapSet.new())
+        updated_blocked = MapSet.put(blocked, channel_id)
+
+        CubDB.put(db, {:user, normalized_id}, Map.put(user, "blocked_channels", updated_blocked))
+
+        Exolyte.ChannelDB.remove_user(channel_id, normalized_id)
+
+        {:ok, updated_blocked}
+    end
+  end
+
+  def unblock_channel(id, channel_id) do
+    db = Exolyte.DB.get_db()
+    normalized_id = String.downcase(id)
+
+    case get_user(normalized_id) do
+      nil ->
+        {:error, :not_found}
+
+      user ->
+        blocked = Map.get(user, "blocked_channels", MapSet.new())
+        updated_blocked = MapSet.delete(blocked, channel_id)
+
+        CubDB.put(db, {:user, normalized_id}, Map.put(user, "blocked_channels", updated_blocked))
+
+        {:ok, updated_blocked}
+    end
+  end
+
   def list_users() do
     db = Exolyte.DB.get_db()
 
@@ -65,6 +111,9 @@ defmodule Exolyte.UserDB do
 
   def authenticate(id, plain_pw) do
     case get_user(id) do
+      %{password_hash: _hash, frozen: true} ->
+        {:error, :unauthorized}
+
       %{password_hash: hash} ->
         if Bcrypt.verify_pass(plain_pw, hash), do: {:ok, id}, else: {:error, :unauthorized}
 
@@ -108,5 +157,44 @@ defmodule Exolyte.UserDB do
   def password_reset(id, plain_pw) do
     hashed_pw = Bcrypt.hash_pwd_salt(plain_pw)
     update_user(id, %{password_hash: hashed_pw})
+  end
+
+  @create_db "priv/user_create"
+
+  def create_user_link() do
+    File.mkdir_p!(@create_db)
+    link_uuid = UUID.uuid4()
+    path = Path.join([@create_db, "#{link_uuid}.json"])
+    expire = System.os_time(:second) + 60 * 60 * 24
+
+    data = %{
+      expire_at: expire
+    }
+
+    File.write!(path, Jason.encode!(data))
+
+    link_uuid
+  end
+
+  def get_user_link(link_uuid) do
+    path = Path.join([@create_db, "#{link_uuid}.json"])
+
+    if File.exists?(path) do
+      {:ok, raw} = File.read(path)
+      data = Jason.decode!(raw)
+
+      if data["expire_at"] < System.os_time(:second) do
+        {:error, :expired}
+      else
+        {:ok, link_uuid}
+      end
+    else
+      {:error, :not_found}
+    end
+  end
+
+  def delete_user_link(link_uuid) do
+    path = Path.join([@create_db, "#{link_uuid}.json"])
+    File.rm(path)
   end
 end

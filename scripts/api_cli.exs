@@ -47,4 +47,21 @@ case System.argv() do
     url = "http://localhost:#{port}/admin/user/reset"
     IO.puts(Req.post!(url, json: body, headers: headers).body)
 
+  ["add_admin_key", name, key] ->
+    body = %{
+      "name" => name,
+      "key" => key
+    }
+
+    url = "http://localhost:#{port}/admin/add_admin_key"
+    IO.inspect(Req.post!(url, json: body, headers: headers))
+
+  ["revoke_admin_key", key] ->
+    body = %{
+      "key" => key
+    }
+
+    url = "http://localhost:#{port}/admin/revoke_admin_key"
+    IO.inspect(Req.post!(url, json: body, headers: headers))
+
 end

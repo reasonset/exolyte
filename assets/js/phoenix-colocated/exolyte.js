@@ -118,10 +118,12 @@ const chatObserver = new MutationObserver(() => {
   })
 })
 
-chatObserver.observe(chatMessageContainer, {
-  childList: true,
-  subtree: true
-})
+if (chatMessageContainer) {
+  chatObserver.observe(chatMessageContainer, {
+    childList: true,
+    subtree: true
+  })
+}
 
 window.addEventListener("focus", e => {
   isWindowFocused = true

@@ -22,7 +22,7 @@ msgstr ""
 msgid "Attempting to reconnect"
 msgstr ""
 
-#: lib/exolyte_web/live/user_live/show.ex:26
+#: lib/exolyte_web/live/user_live/show.ex:69
 #, elixir-autogen, elixir-format
 msgid "Channels"
 msgstr ""
@@ -61,7 +61,8 @@ msgid "Something went wrong!"
 msgstr ""
 
 #: lib/exolyte_web/controllers/session_html/login.html.heex:8
-#: lib/exolyte_web/live/user_live/show.ex:22
+#: lib/exolyte_web/live/channel_live/channel_live.ex:88
+#: lib/exolyte_web/live/user_live/show.ex:65
 #, elixir-autogen, elixir-format
 msgid "User ID"
 msgstr ""
@@ -76,7 +77,265 @@ msgstr ""
 msgid "close"
 msgstr ""
 
-#: lib/exolyte_web/live/channel_live/channel_live.ex:73
+#: lib/exolyte_web/live/channel_live/channel_live.ex:60
 #, elixir-autogen, elixir-format
 msgid "Chat!"
+msgstr ""
+
+#: lib/exolyte_web/live/live_auth.ex:19
+#, elixir-autogen, elixir-format
+msgid "Account is invalid."
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:54
+#, elixir-autogen, elixir-format
+msgid "Add"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:38
+#, elixir-autogen, elixir-format
+msgid "Add Friend"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:136
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to block this channel?"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:122
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to leave this channel?"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:185
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to unblock %{channel}?"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:139
+#, elixir-autogen, elixir-format
+msgid "Block"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:112
+#: lib/exolyte_web/live/channel_live/channel_live.ex:135
+#, elixir-autogen, elixir-format
+msgid "Block channel"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:102
+#, elixir-autogen, elixir-format
+msgid "Blocked Channels"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:124
+#: lib/exolyte_web/live/channel_live/channel_live.ex:138
+#: lib/exolyte_web/live/channel_live/channel_live.ex:202
+#: lib/exolyte_web/live/user_live/show.ex:187
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Cancel"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:224
+#, elixir-autogen, elixir-format
+msgid "Cannot add yourself."
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:304
+#, elixir-autogen, elixir-format
+msgid "Cannot invite yourself."
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:128
+#: lib/exolyte_web/live/channel_live/channel_live.ex:142
+#: lib/exolyte_web/live/channel_live/channel_live.ex:187
+#: lib/exolyte_web/live/channel_live/channel_live.ex:190
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Close"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:79
+#, elixir-autogen, elixir-format
+msgid "Direct Messages"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:134
+#: lib/exolyte_web/live/user_live/show.ex:135
+#, elixir-autogen, elixir-format
+msgid "Display Name"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:40
+#, elixir-autogen, elixir-format
+msgid "Enter User ID to search"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:257
+#, elixir-autogen, elixir-format
+msgid "Failed to add friend: %{reason}"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:370
+#, elixir-autogen, elixir-format
+msgid "Failed to invite user: %{reason}"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:101
+#, elixir-autogen, elixir-format
+msgid "Invite"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:86
+#: lib/exolyte_web/live/user_live/show.ex:142
+#, elixir-autogen, elixir-format
+msgid "Invite User"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:125
+#, elixir-autogen, elixir-format
+msgid "Leave"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:111
+#: lib/exolyte_web/live/channel_live/channel_live.ex:121
+#, elixir-autogen, elixir-format
+msgid "Leave channel"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:106
+#, elixir-autogen, elixir-format
+msgid "No blocked channels."
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:89
+#: lib/exolyte_web/live/user_live/show.ex:41
+#, elixir-autogen, elixir-format
+msgid "Search"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:113
+#: lib/exolyte_web/live/user_live/show.ex:188
+#, elixir-autogen, elixir-format
+msgid "Unblock"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:184
+#, elixir-autogen, elixir-format
+msgid "Unblock Channel"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:348
+#, elixir-autogen, elixir-format
+msgid "User has blocked this channel."
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:316
+#, elixir-autogen, elixir-format
+msgid "User is already in the channel."
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:364
+#, elixir-autogen, elixir-format
+msgid "User is banned from this channel."
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:309
+#: lib/exolyte_web/live/channel_live/channel_live.ex:332
+#: lib/exolyte_web/live/user_live/show.ex:228
+#, elixir-autogen, elixir-format
+msgid "User not found."
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:156
+#, elixir-autogen, elixir-format
+msgid "2-32 chars"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:199
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Are you sure you want to kick and ban %{user}?"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:162
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Channel Description"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:166
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Channel ID"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:155
+#: lib/exolyte_web/live/user_live/show.ex:170
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Channel Name"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:109
+#: lib/exolyte_web/live/channel_live/channel_live.ex:150
+#, elixir-autogen, elixir-format
+msgid "Channel Settings"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:314
+#, elixir-autogen, elixir-format
+msgid "Channel already exists."
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:176
+#, elixir-autogen, elixir-format
+msgid "Create"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:163
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Create Channel"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:165
+#, elixir-autogen, elixir-format
+msgid "Describe the purpose of this channel..."
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:311
+#, elixir-autogen, elixir-format
+msgid "Failed to create channel."
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:317
+#, elixir-autogen, elixir-format
+msgid "Invalid channel ID format."
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:180
+#, elixir-autogen, elixir-format
+msgid "Kick"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:174
+#: lib/exolyte_web/live/channel_live/channel_live.ex:197
+#: lib/exolyte_web/live/channel_live/channel_live.ex:203
+#, elixir-autogen, elixir-format
+msgid "Kick User"
+msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:195
+#, elixir-autogen, elixir-format
+msgid "Logout"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:163
+#, elixir-autogen, elixir-format
+msgid "Max 140 chars"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:167
+#, elixir-autogen, elixir-format
+msgid "Save Settings"
+msgstr ""
+
+#: lib/exolyte_web/live/channel_live/channel_live.ex:351
+#, elixir-autogen, elixir-format, fuzzy
+msgid "User has blocked the channel operator."
 msgstr ""

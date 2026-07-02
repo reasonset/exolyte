@@ -14,6 +14,7 @@ defmodule Exolyte.Application do
       {Registry, keys: :unique, name: ChatlogRegistry},
       {DynamicSupervisor, strategy: :one_for_one, name: ChatlogSupervisor},
       {Exolyte.DB, []},
+      {Exolyte.Settings, []},
 
       # Start a worker by calling: Exolyte.Worker.start_link(arg)
       # {Exolyte.Worker, arg},

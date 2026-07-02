@@ -38,10 +38,13 @@ defmodule ExolyteWeb.Router do
     post "/login", SessionController, :create
     get "/reset/:link_uuid", UserController, :show
     post "/reset/:link_uuid", UserController, :reset
+    get "/register/:link_uuid", RegisterController, :new
+    post "/register/:link_uuid", RegisterController, :create
     get "/not_found", ErrorController, :notfound
     get "/notification_sound.ogg", FileController, :bipo
     get "/notification_foreground_sound.ogg", FileController, :chi
     get "/sending_sound.ogg", FileController, :bipi
+    delete "/logout", SessionController, :delete
     get "/", PageController, :home
   end
 
@@ -56,8 +59,18 @@ defmodule ExolyteWeb.Router do
     post "/channel/join", AdminController, :join
     post "/user/create", AdminController, :create_user
     post "/user/reset", AdminController, :reset_user
+    post "/add_admin_key", AdminController, :add_admin_key
+    post "/revoke_admin_key", AdminController, :revoke_admin_key
 
     # get "/test", InspectController, :show
+  end
+
+  live_session :admin_console do
+    scope "/admin", ExolyteWeb do
+      pipe_through [:browser]
+
+      live "/console", ConsoleLive
+    end
   end
 
   live_session :default, on_mount: [ExolyteWeb.LiveAuth, ExolyteWeb.PutLocale] do
