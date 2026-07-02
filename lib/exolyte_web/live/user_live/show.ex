@@ -161,9 +161,15 @@ defmodule ExolyteWeb.UserLive.Show do
       <%= if Map.get(@settings, "allow_channel_creation", false) do %>
         <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4 mt-4">
           <legend class="fieldset-legend"><%= gettext("Create Channel") %></legend>
-          <form phx-submit="create_channel">
-            <label class="label"><%= gettext("Channel ID") %></label>
-            <input type="text" name="channel_id" class="input w-full" placeholder="e.g. general_chat" required pattern="^[a-z][a-z0-9_]{4,30}[a-z0-9]$" title="Must be 6-32 chars, start with lowercase letter, end with lowercase letter or number, and contain only lowercase letters, numbers, and underscores." />
+          <form phx-submit="create_channel" class="flex flex-col gap-2">
+            <div class="form-control">
+              <label class="label"><%= gettext("Channel ID") %></label>
+              <input type="text" name="channel_id" class="input w-full" placeholder="e.g. general_chat" required pattern="^[a-z][a-z0-9_]{4,30}[a-z0-9]$" title="Must be 6-32 chars, start with lowercase letter, end with lowercase letter or number, and contain only lowercase letters, numbers, and underscores." />
+            </div>
+            <div class="form-control">
+              <label class="label"><%= gettext("Channel Name") %></label>
+              <input type="text" name="channel_name" class="input w-full" placeholder="e.g. General Chat" required minlength="2" maxlength="32" />
+            </div>
             <%= if @channel_error do %>
               <div class="text-error text-sm mt-2"><%= @channel_error %></div>
             <% end %>
@@ -182,6 +188,11 @@ defmodule ExolyteWeb.UserLive.Show do
             <button class="btn btn-error" phx-click="execute_unblock"><%= gettext("Unblock") %></button>
           </div>
         </div>
+      </div>
+
+      <!-- Logout Button -->
+      <div class="mt-8 flex justify-center">
+        <.link href="/logout" method="delete" class="btn btn-outline btn-error w-full"><%= gettext("Logout") %></.link>
       </div>
     </div>
     """
@@ -282,13 +293,14 @@ defmodule ExolyteWeb.UserLive.Show do
     {:noreply, assign(socket, generated_link: link, generated_qr: qr_svg)}
   end
 
-  def handle_event("create_channel", %{"channel_id" => channel_id}, socket) do
+  def handle_event("create_channel", %{"channel_id" => channel_id, "channel_name" => channel_name}, socket) do
     user_id = socket.assigns.user_id
     if Regex.match?(~r/^[a-z][a-z0-9_]{4,30}[a-z0-9]$/, channel_id) do
       # check if exists
       case Exolyte.ChannelDB.get_channel(channel_id) do
         nil ->
-          case Exolyte.ChannelDB.create_channel(channel_id, channel_id) do
+          safe_name = String.slice(String.trim(channel_name), 0, 32)
+          case Exolyte.ChannelDB.create_channel(channel_id, safe_name) do
             :ok ->
               Exolyte.ChannelDB.set_chop(channel_id, user_id)
               Exolyte.ChannelDB.add_user(channel_id, user_id)

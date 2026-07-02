@@ -149,7 +149,14 @@ defmodule ExolyteWeb.ChannelLive do
           <div class="modal-box">
             <h3 class="text-lg font-bold mb-4"><%= gettext("Channel Settings") %></h3>
             
-            <form phx-submit="update_description" class="mb-6">
+            <form phx-submit="update_settings" class="mb-6 flex flex-col gap-4">
+              <div class="form-control w-full">
+                <label class="label">
+                  <span class="label-text font-bold"><%= gettext("Channel Name") %></span>
+                  <span class="label-text-alt text-base-content/60"><%= gettext("2-32 chars") %></span>
+                </label>
+                <input type="text" name="channel_name" value={@channel_info.name} class="input input-bordered w-full" required minlength="2" maxlength="32" />
+              </div>
               <div class="form-control w-full">
                 <label class="label">
                   <span class="label-text font-bold"><%= gettext("Channel Description") %></span>
@@ -157,7 +164,7 @@ defmodule ExolyteWeb.ChannelLive do
                 </label>
                 <textarea name="description" class="textarea textarea-bordered textarea-md w-full resize-none focus:textarea-primary focus:shadow-sm" maxlength="140" rows="3" placeholder={gettext("Describe the purpose of this channel...")}><%= @channel_info.description %></textarea>
                 <div class="mt-3 flex justify-end">
-                  <button type="submit" class="btn btn-sm btn-primary"><%= gettext("Save Description") %></button>
+                  <button type="submit" class="btn btn-sm btn-primary"><%= gettext("Save Settings") %></button>
                 </div>
               </div>
             </form>
@@ -368,12 +375,12 @@ defmodule ExolyteWeb.ChannelLive do
     end
   end
 
-  def handle_event("update_description", %{"description" => description}, socket) do
+  def handle_event("update_settings", %{"description" => description, "channel_name" => channel_name}, socket) do
     if socket.assigns.current_user.id == socket.assigns.channel_info.chop do
       safe_desc = String.slice(description, 0, 140)
+      safe_name = String.slice(channel_name, 0, 32)
       
-      # Since update_channel doesn't return {:ok, channel}, we get the updated channel via get_channel
-      Exolyte.ChannelDB.update_channel(socket.assigns.channel_id, %{description: safe_desc})
+      Exolyte.ChannelDB.update_channel(socket.assigns.channel_id, %{description: safe_desc, name: safe_name})
       updated_channel = Exolyte.ChannelDB.get_channel(socket.assigns.channel_id)
       
       {:noreply, set_channel_info(updated_channel, socket)}

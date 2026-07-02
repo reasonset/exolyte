@@ -44,6 +44,7 @@ defmodule ExolyteWeb.Router do
     get "/notification_sound.ogg", FileController, :bipo
     get "/notification_foreground_sound.ogg", FileController, :chi
     get "/sending_sound.ogg", FileController, :bipi
+    delete "/logout", SessionController, :delete
     get "/", PageController, :home
   end
 

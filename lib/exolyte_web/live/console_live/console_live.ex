@@ -16,7 +16,11 @@ defmodule ExolyteWeb.ConsoleLive do
       generated_reset_link: nil,
       search_query: "",
       settings: Exolyte.Settings.get(),
-      settings_saved: false
+      settings_saved: false,
+      channels: [],
+      selected_channel_id: nil,
+      selected_channel: nil,
+      channel_update_msg: nil
     )}
   end
 
@@ -71,13 +75,13 @@ defmodule ExolyteWeb.ConsoleLive do
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div class="stat shadow bg-base-200 rounded-box">
                     <div class="stat-title">Total Users</div>
-                    <div class="stat-value">---</div>
+                    <div class="stat-value"><%= length(@users) %></div>
                     <div class="stat-desc">Active accounts</div>
                   </div>
                   <div class="stat shadow bg-base-200 rounded-box">
                     <div class="stat-title">Channels</div>
-                    <div class="stat-value">---</div>
-                    <div class="stat-desc">Created channels</div>
+                    <div class="stat-value"><%= length(Exolyte.ChannelDB.list_channels()) %></div>
+                    <div class="stat-desc">Including DMs</div>
                   </div>
                 </div>
               <% end %>
@@ -212,7 +216,100 @@ defmodule ExolyteWeb.ConsoleLive do
               <% end %>
               
               <%= if @active_tab == "channels" do %>
-                <p>Channel management interface goes here.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
+                  <!-- Left Sidebar: Channel List -->
+                  <div class="md:col-span-1 flex flex-col gap-4 overflow-hidden h-full">
+                    <div class="card bg-base-200 shadow-sm flex-1 overflow-hidden flex flex-col">
+                      <div class="p-4 font-bold border-b border-base-300">Channel List</div>
+                      <div class="p-2 border-b border-base-300">
+                        <form phx-change="search_channels" onSubmit="return false;">
+                          <input type="text" name="query" value={@search_query} phx-debounce="300" placeholder="Search by ID or name..." class="input input-sm input-bordered w-full" />
+                        </form>
+                      </div>
+                      <ul class="menu flex-nowrap overflow-y-auto flex-1 p-2">
+                        <%= for channel <- Enum.filter(@channels, fn c -> 
+                              q = String.downcase(@search_query)
+                              String.contains?(String.downcase(c.id), q) or 
+                              String.contains?(String.downcase(Map.get(c, :name, "")), q)
+                            end) do %>
+                          <li>
+                            <a class={if @selected_channel_id == channel.id, do: "active", else: ""} phx-click="select_channel" phx-value-id={channel.id}>
+                              <div class="flex flex-col items-start gap-1">
+                                <span class="font-medium"><%= channel.name %></span>
+                                <span class="text-xs opacity-70"><%= channel.id %></span>
+                              </div>
+                            </a>
+                          </li>
+                        <% end %>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <!-- Right Side: Channel Details -->
+                  <div class="md:col-span-2 overflow-y-auto">
+                    <%= if @selected_channel do %>
+                      <div class="card bg-base-200 shadow-sm">
+                        <div class="card-body">
+                          <h2 class="card-title text-2xl mb-4 border-b border-base-300 pb-2">
+                            Channel Details
+                          </h2>
+
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                              <p class="text-sm text-base-content/70">Channel ID</p>
+                              <p class="font-bold text-lg"><%= @selected_channel.id %></p>
+                            </div>
+                            <div>
+                              <p class="text-sm text-base-content/70">Channel Name</p>
+                              <p class="font-bold text-lg"><%= @selected_channel.name %></p>
+                            </div>
+                          </div>
+
+                          <form phx-submit="update_channel_settings" class="flex flex-col gap-6">
+                            <div class="form-control w-full">
+                              <label class="label">
+                                <span class="label-text font-bold">Channel Name</span>
+                              </label>
+                              <input type="text" name="name" value={@selected_channel.name} class="input input-bordered w-full" required />
+                            </div>
+
+                            <div class="form-control w-full">
+                              <label class="label">
+                                <span class="label-text font-bold">Chop (User ID)</span>
+                              </label>
+                              <input type="text" name="chop" value={@selected_channel.chop} placeholder="e.g. alice" class="input input-bordered w-full" />
+                              <label class="label">
+                                <span class="label-text-alt text-base-content/70">Leave blank to remove channel operator</span>
+                              </label>
+                            </div>
+
+                            <div class="form-control w-full">
+                              <label class="label">
+                                <span class="label-text font-bold">Description</span>
+                              </label>
+                              <textarea name="description" class="textarea textarea-bordered h-24 w-full" placeholder="Channel description..."><%= @selected_channel.description %></textarea>
+                            </div>
+                            
+                            <%= if @channel_update_msg do %>
+                              <div class="alert alert-success shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span><%= @channel_update_msg %></span>
+                              </div>
+                            <% end %>
+
+                            <div class="card-actions justify-end mt-4">
+                              <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    <% else %>
+                      <div class="flex items-center justify-center h-full text-base-content/50">
+                        <p>Select a channel from the list to view and edit details.</p>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
               <% end %>
               
               <%= if @active_tab == "invite" do %>
@@ -312,7 +409,19 @@ defmodule ExolyteWeb.ConsoleLive do
   end
 
   def handle_event("change_tab", %{"tab" => tab}, socket) do
-    {:noreply, assign(socket, active_tab: tab, generated_link: nil, generated_qr: nil, search_query: "", settings_saved: false)}
+    socket = assign(socket, active_tab: tab, generated_link: nil, generated_qr: nil, search_query: "", settings_saved: false, channel_update_msg: nil)
+    
+    socket = if tab == "channels" do
+      channels = Exolyte.ChannelDB.list_channels()
+                 |> Enum.map(fn {_, c} -> c end)
+                 |> Enum.filter(fn c -> not String.starts_with?(c.id, "dm:") end)
+                 |> Enum.sort_by(& &1.id)
+      assign(socket, channels: channels)
+    else
+      socket
+    end
+
+    {:noreply, socket}
   end
 
   def handle_event("save_settings", params, socket) do
@@ -330,6 +439,44 @@ defmodule ExolyteWeb.ConsoleLive do
 
   def handle_event("search_users", %{"query" => query}, socket) do
     {:noreply, assign(socket, search_query: query)}
+  end
+
+  def handle_event("search_channels", %{"query" => query}, socket) do
+    {:noreply, assign(socket, search_query: query)}
+  end
+
+  def handle_event("select_channel", %{"id" => id}, socket) do
+    channel = Exolyte.ChannelDB.get_channel(id)
+    {:noreply, assign(socket, selected_channel_id: id, selected_channel: channel, channel_update_msg: nil)}
+  end
+
+  def handle_event("update_channel_settings", %{"chop" => chop_input, "description" => desc, "name" => name}, socket) do
+    channel_id = socket.assigns.selected_channel_id
+    if channel_id do
+      chop_val = if String.trim(chop_input) == "", do: nil, else: String.trim(chop_input)
+      desc_val = String.trim(desc)
+      name_val = String.trim(name)
+      
+      Exolyte.ChannelDB.update_channel(channel_id, %{description: desc_val, name: name_val})
+      if chop_val != socket.assigns.selected_channel.chop do
+        Exolyte.ChannelDB.set_chop(channel_id, chop_val)
+      end
+      
+      updated_channel = Exolyte.ChannelDB.get_channel(channel_id)
+      
+      channels = Exolyte.ChannelDB.list_channels()
+                 |> Enum.map(fn {_, c} -> c end)
+                 |> Enum.filter(fn c -> not String.starts_with?(c.id, "dm:") end)
+                 |> Enum.sort_by(& &1.id)
+      
+      {:noreply, assign(socket, 
+        selected_channel: updated_channel, 
+        channels: channels,
+        channel_update_msg: "Channel settings saved successfully."
+      )}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("generate_link", _params, socket) do
