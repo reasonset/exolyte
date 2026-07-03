@@ -13,6 +13,12 @@ defmodule Exolyte.NotificationServer do
     {:noreply, nil}
   end
 
+  def handle_cast({:message_received, user_id, channel_id, timestamp}, _state) do
+    db = Exolyte.NotificationCubDB.get_db()
+    CubDB.put(db, {:message_received, user_id, channel_id}, timestamp)    
+    {:noreply, nil}
+  end
+
   def handle_cast({:mention, user_id, channel_id, content}, _state) do
     db = Exolyte.NotificationCubDB.get_db()
     json = CubDB.get(db, {:notifications, user_id})

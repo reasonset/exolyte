@@ -5,7 +5,21 @@ defmodule ExolyteWeb.UserLive.Show do
 
   def mount(_params, session, socket) do
     user_id = session["user_id"]
-    channels = Exolyte.ChannelDB.channels_for_user(user_id)
+    channels =
+      Exolyte.ChannelDB.channels_for_user(user_id)
+      |> Enum.map(fn channel ->
+        marks = []
+
+        marks =
+          if Exolyte.Notification.unread?(:channel, user_id, channel.id) do
+            [:unread | marks]
+          else
+            marks
+          end
+
+        Map.put(channel, :unread_marks, Enum.reverse(marks))
+      end)
+
     user = Exolyte.UserDB.get_user(user_id)
     blocked_channels = Map.get(user, "blocked_channels", MapSet.new()) |> MapSet.to_list()
 
@@ -72,7 +86,18 @@ defmodule ExolyteWeb.UserLive.Show do
             <h3 class="text-lg font-semibold mb-2"><%= gettext("Channels") %></h3>
             <ul class="menu bg-base-200 rounded-box">
               <%= for channel <- @regular_channels do %>
-                  <li><a href={"/channel/#{channel.id}"} phx-link="navigate"><%= channel.name %></a></li>
+                  <li>
+                    <a href={"/channel/#{channel.id}"} phx-link="navigate" class="flex justify-between items-center">
+                      <span><%= channel.name %></span>
+                      <div class="flex gap-1">
+                        <%= for mark <- channel.unread_marks do %>
+                          <%= if mark == :unread do %>
+                            <span class="badge badge-primary badge-xs" title={gettext("Unread")}></span>
+                          <% end %>
+                        <% end %>
+                      </div>
+                    </a>
+                  </li>
               <% end %>
             </ul>
           </div>
@@ -88,8 +113,15 @@ defmodule ExolyteWeb.UserLive.Show do
                       other_user_id = if u1 == @user_id, do: u2, else: u1
                     %>
                     <li>
-                      <a href={"/channel/#{channel.id}"} phx-link="navigate">
-                        @<%= other_user_id %>
+                      <a href={"/channel/#{channel.id}"} phx-link="navigate" class="flex justify-between items-center">
+                        <span>@<%= other_user_id %></span>
+                        <div class="flex gap-1">
+                          <%= for mark <- channel.unread_marks do %>
+                            <%= if mark == :unread do %>
+                              <span class="badge badge-primary badge-xs" title={gettext("Unread")}></span>
+                            <% end %>
+                          <% end %>
+                        </div>
                       </a>
                     </li>
                 <% end %>
@@ -239,7 +271,20 @@ defmodule ExolyteWeb.UserLive.Show do
   def handle_event("add_friend", %{"target_id" => target_id}, socket) do
     case Exolyte.Friend.add_friend(socket.assigns.user_id, target_id) do
       {:ok, _channel_id} ->
-        channels = Exolyte.ChannelDB.channels_for_user(socket.assigns.user_id)
+        channels =
+          Exolyte.ChannelDB.channels_for_user(socket.assigns.user_id)
+          |> Enum.map(fn channel ->
+            marks = []
+
+            marks =
+              if Exolyte.Notification.unread?(:channel, socket.assigns.user_id, channel.id) do
+                [:unread | marks]
+              else
+                marks
+              end
+
+            Map.put(channel, :unread_marks, Enum.reverse(marks))
+          end)
 
         {dm_channels, regular_channels} =
           Enum.split_with(channels, fn

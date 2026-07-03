@@ -15,6 +15,7 @@ defmodule Exolyte.Application do
       {DynamicSupervisor, strategy: :one_for_one, name: ChatlogSupervisor},
       {Exolyte.DB, []},
       {Exolyte.NotificationCubDB, []},
+      {Exolyte.NotificationServer, []},
       {Exolyte.Settings, []},
 
       # Start a worker by calling: Exolyte.Worker.start_link(arg)

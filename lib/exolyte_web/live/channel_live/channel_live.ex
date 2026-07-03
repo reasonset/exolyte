@@ -231,6 +231,8 @@ defmodule ExolyteWeb.ChannelLive do
     {:ok, raw} = File.read(path)
     log = Jason.decode!(raw)
 
+    Exolyte.Notification.message_received(socket.assigns.user_id, socket.assigns.channel_id, System.os_time(:second))
+
     {:noreply,
      socket
      |> assign(:messages, format_messages(log["messages"]))
@@ -248,6 +250,7 @@ defmodule ExolyteWeb.ChannelLive do
   end
 
   def handle_info({:new_message, message, sender_session_id}, socket) do
+    Exolyte.Notification.message_received(socket.assigns.user_id, socket.assigns.channel_id, message["timestamp"])
     if sender_session_id == socket.assigns.session_id do
       {:noreply, socket}
     else
@@ -293,6 +296,8 @@ defmodule ExolyteWeb.ChannelLive do
         "channel:#{socket.assigns.channel_id}",
         {:new_message, message, socket.assigns.session_id}
       )
+
+      Exolyte.Notification.channel_update(socket.assigns.channel_id, message["timestamp"])
 
       socket = push_event(socket, "sound_sent", %{})
       {:noreply, assign(socket, :messages, socket.assigns.messages ++ [message])}
