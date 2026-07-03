@@ -434,8 +434,9 @@ defmodule ExolyteWeb.ChannelLive do
   defp format_message(message) do
     message_marked =
       message["content"]
-      |> HtmlSanitizeEx.basic_html()
-      |> Earmark.as_html!(gfm: true)
+      |> MDEx.to_html!(
+        extension: [table: true, tasklist: true, strikethrough: true, autolink: true]
+      )
 
     Map.put(message, "content", message_marked)
   end

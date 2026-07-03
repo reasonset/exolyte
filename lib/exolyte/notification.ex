@@ -1,11 +1,24 @@
 defmodule Exolyte.Notification do
-  @ntfy_setting Application.compile_env(:exolyte, :ntfy)
+  def read(user_id, channel_id) do
+    db = Exolyte.NotificationCubDB.get_db()
+    json = CubDB.get(db, {:notifications, user_id})
+    data = if json, do: JSON.decode(json), else: %{}
 
-  def ntfy_to(topic) do
-    if (topic && @ntfy_setting["enable"]) do
-      IO.puts("TOPIC ON")
-    else
-      IO.puts("TOPIC OFF")
-    end
+    notifications = Map.get(data, channel_id)
+    new_data = Map.delete(data, channel_id)
+    CubDB.put(db, {:notifications, user_id}, new_data)
+
+    notifications
+  end
+
+  def clear(user_id) do
+    db = Exolyte.NotificationCubDB.get_db()
+    CubDB.put(db, {:notifications, user_id}, %{})
+  end
+
+  def get(user_id) do
+    db = Exolyte.NotificationCubDB.get_db()
+    json = CubDB.get(db, {:notifications, user_id})
+    if json, do: JSON.decode(json), else: %{}
   end
 end
