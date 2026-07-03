@@ -64,11 +64,11 @@ Reset link expires after 24 hours passed.
 
 ### Deploy for prod
 
-* Create secret key with `mix phx.gen.secret`
 * Clone repository on prod server
 * `cd exolyte`
-* Create directories `mix run scripts/setup.exs`
 * `mix deps.get`
+* Create directories `mix run scripts/setup.exs`
+* Create secret key with `mix phx.gen.secret`
 * Configure the `admin.token` settings in `config/prod.secret.exs`
 * `SECRET_KEY_BASE=${secret_key} EXOLYTE_HOST=${exolyte_host_name} MIX_ENV=prod mix compile`
 * `SECRET_KEY_BASE=${secret_key} EXOLYTE_HOST=${exolyte_host_name} MIX_ENV=prod mix phx.server`
