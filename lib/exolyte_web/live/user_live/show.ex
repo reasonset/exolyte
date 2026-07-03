@@ -15,6 +15,8 @@ defmodule ExolyteWeb.UserLive.Show do
         _ -> false
       end)
 
+    settings = Exolyte.Settings.get()
+
     {:ok,
      socket
      |> assign(:user_id, user_id)
@@ -24,10 +26,11 @@ defmodule ExolyteWeb.UserLive.Show do
      |> assign(:unblock_target, nil)
      |> assign(:search_result, nil)
      |> assign(:search_error, nil)
-     |> assign(:settings, Exolyte.Settings.get())
+     |> assign(:settings, settings)
      |> assign(:generated_link, nil)
      |> assign(:generated_qr, nil)
-     |> assign(:channel_error, nil)}
+     |> assign(:channel_error, nil)
+     |> assign(:page_title, "MyPage - #{ Map.get(settings, "instance_name") || "Exolyte"}")}
   end
 
   def render(assigns) do
