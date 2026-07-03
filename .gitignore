@@ -15,6 +15,7 @@ erl_crash.dump
 /priv/auth_session
 /priv/user_create
 /priv/settings.json
+/priv/notifications
 logs
 /site_local
 AGENT.md
