@@ -4,6 +4,10 @@
 
 # Beta
 
+## Beginning of the Night 4 (2026-07-03)
+
+Added unread mark and notification mechanism.
+
 ## Beginning of the Night 3 (2026-07-02)
 
 -> Tag: `night_is_began`

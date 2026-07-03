@@ -10,16 +10,32 @@ defmodule ExolyteWeb.ChannelLive do
     with channel_info when not is_nil(channel_info) <- Exolyte.ChannelDB.get_channel(channel_id),
          true <- MapSet.member?(channel_info.users, session["user_id"]) do
       ssocket = set_channel_info(channel_info, socket)
+      settings = Exolyte.Settings.get()
+      is_dm = String.starts_with?(channel_id, "dm:")
+
+      channel_name = if (is_dm)
+      do
+        "dm:" <> rest = channel_id
+        [u1, u2] = String.split(rest, ":")
+        other_user_id = if u1 == socket.assigns.current_user.id, do: u2, else: u1
+        "DM for @#{other_user_id}"
+      else
+        channel_info.name
+      end
 
       {:ok,
        ssocket
        |> assign(:channel_id, channel_id)
+       |> assign(:channel_name, channel_name)
        |> assign(:messages, [])
        |> assign(:oldest_index, nil)
        |> assign(:has_more, false)
        |> assign(:search_result, nil)
        |> assign(:search_error, nil)
-       |> assign(:kick_target, nil)}
+       |> assign(:kick_target, nil)
+       |> assign(:is_dm, is_dm)
+       |> assign(:page_title, "#{channel_name} - #{ Map.get(settings, "instance_name") || "Exolyte"}")}
+
     else
       _ -> {:ok, push_navigate(socket, to: ~p"/not_found")}
     end
@@ -31,7 +47,7 @@ defmodule ExolyteWeb.ChannelLive do
       <input id="channel-drawer" type="checkbox" class="drawer-toggle" phx-update="ignore" />
       <div class="drawer-content flex flex-col h-dvh">
         <div class="navbar bg-base-100 shadow-sm">
-          <label for="channel-drawer" class="btn drawer-button"><%= @channel_info.name %></label>
+          <label for="channel-drawer" class="btn drawer-button"><%= @channel_name %></label>
         </div>
         <div id="chat-messages" class="overflow-y-auto pb-20 flex-1" phx-hook="ChatContainerHook" data-oldest-index={@oldest_index} data-has-more={if @has_more, do: "true", else: "false"}>
           <%= for msg <- @messages do %>
@@ -76,12 +92,12 @@ defmodule ExolyteWeb.ChannelLive do
           <ul class="menu bg-base-200 rounded-box flex-1 mt-2">
             <%= for user <- @channel_users do %>
               <li style={"color: #{user.user_color}"}>
-                <%= user.display_name %>
+                <%= user.display_name %> (@<%= user.id %>)
               </li>
             <% end %>
           </ul>
 
-          <%= if not String.starts_with?(@channel_id, "dm:") do %>
+          <%= if not @is_dm do %>
             <div class="mt-4 border-t pt-4 border-base-300">
               <h3 class="text-sm font-bold mb-2"><%= gettext("Invite User") %></h3>
               <form phx-submit="search_user" class="flex gap-2">
@@ -155,7 +171,7 @@ defmodule ExolyteWeb.ChannelLive do
                   <span class="label-text font-bold"><%= gettext("Channel Name") %></span>
                   <span class="label-text-alt text-base-content/60"><%= gettext("2-32 chars") %></span>
                 </label>
-                <input type="text" name="channel_name" value={@channel_info.name} class="input input-bordered w-full" required minlength="2" maxlength="32" />
+                <input type="text" name="channel_name" value={@channel_name} class="input input-bordered w-full" required minlength="2" maxlength="32" />
               </div>
               <div class="form-control w-full">
                 <label class="label">
@@ -215,6 +231,8 @@ defmodule ExolyteWeb.ChannelLive do
     {:ok, raw} = File.read(path)
     log = Jason.decode!(raw)
 
+    Exolyte.Notification.message_received(socket.assigns.user_id, socket.assigns.channel_id, System.os_time(:second))
+
     {:noreply,
      socket
      |> assign(:messages, format_messages(log["messages"]))
@@ -232,6 +250,7 @@ defmodule ExolyteWeb.ChannelLive do
   end
 
   def handle_info({:new_message, message, sender_session_id}, socket) do
+    Exolyte.Notification.message_received(socket.assigns.user_id, socket.assigns.channel_id, message["timestamp"])
     if sender_session_id == socket.assigns.session_id do
       {:noreply, socket}
     else
@@ -277,6 +296,8 @@ defmodule ExolyteWeb.ChannelLive do
         "channel:#{socket.assigns.channel_id}",
         {:new_message, message, socket.assigns.session_id}
       )
+
+      Exolyte.Notification.channel_update(socket.assigns.channel_id, message["timestamp"])
 
       socket = push_event(socket, "sound_sent", %{})
       {:noreply, assign(socket, :messages, socket.assigns.messages ++ [message])}
@@ -437,7 +458,6 @@ defmodule ExolyteWeb.ChannelLive do
       |> MDEx.to_html!(
         extension: [table: true, tasklist: true, strikethrough: true, autolink: true]
       )
-
 
     Map.put(message, "content", message_marked)
   end

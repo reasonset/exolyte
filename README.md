@@ -70,6 +70,7 @@ Reset link expires after 24 hours passed.
 * Create directories `mix run scripts/setup.exs`
 * Create secret key with `mix phx.gen.secret`
 * Configure the `admin.token` settings in `config/prod.secret.exs`
+* `mix assets.deploy`
 * `SECRET_KEY_BASE=${secret_key} EXOLYTE_HOST=${exolyte_host_name} MIX_ENV=prod mix compile`
 * `SECRET_KEY_BASE=${secret_key} EXOLYTE_HOST=${exolyte_host_name} MIX_ENV=prod mix phx.server`
 
