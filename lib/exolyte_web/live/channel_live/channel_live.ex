@@ -76,7 +76,7 @@ defmodule ExolyteWeb.ChannelLive do
           <ul class="menu bg-base-200 rounded-box flex-1 mt-2">
             <%= for user <- @channel_users do %>
               <li style={"color: #{user.user_color}"}>
-                <%= user.display_name %>
+                <%= user.display_name %> (@<%= user.id %>)
               </li>
             <% end %>
           </ul>
