@@ -28,8 +28,8 @@ defmodule Exolyte.Notification do
 
   def unread?(:channel, user_id, channel_id) do
     db = Exolyte.NotificationCubDB.get_db()
-    channel_last = CubDB.get(db, {:channel_update, channel_id})
-    already_read = CubDB.get(db, {:message_received, user_id, channel_id})
+    channel_last = CubDB.get(db, {:channel_update, channel_id}) || 0
+    already_read = CubDB.get(db, {:message_received, user_id, channel_id}) || 0
     channel_last > already_read
   end
 
