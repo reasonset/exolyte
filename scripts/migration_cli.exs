@@ -6,6 +6,7 @@ case System.argv() do
   ["user"] ->
     defaults = %{
       blocked_channels: MapSet.new(),
+      unifiedpush_endpoint: nil,
       created_at: DateTime.to_unix(~U[2000-01-01 00:00:00Z]),
       created_at_iso: DateTime.to_iso8601(~U[2000-01-01 00:00:00Z])
     }

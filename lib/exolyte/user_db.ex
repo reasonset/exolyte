@@ -26,6 +26,7 @@ defmodule Exolyte.UserDB do
     now = DateTime.utc_now()
     user_default = %{
       blocked_channels: MapSet.new(),
+      unifiedpush_endpoint: nil,
       created_at: DateTime.to_unix(now),
       created_at_iso: DateTime.to_iso8601(now)
     }
@@ -97,6 +98,10 @@ defmodule Exolyte.UserDB do
 
         {:ok, updated_blocked}
     end
+  end
+
+  def unsubscribe_unifiedpush(id) do
+    update_user(id, %{unifiedpush_endpoint: nil})
   end
 
   def list_users() do
