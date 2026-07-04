@@ -2,6 +2,12 @@
 
 # version 1
 
+## v1.0.0
+
+* Add notification and push notification (WebPush, UnifiedPush) feature
+* Add mention
+* PWA Support
+
 # Beta
 
 ## Beginning of the Night 4 (2026-07-03)
