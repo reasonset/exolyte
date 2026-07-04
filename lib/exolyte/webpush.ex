@@ -27,12 +27,14 @@ defmodule Exolyte.WebPush do
   def convert_notification_content(content) do
     title = case content.type do
       :invitation -> "Invited to channel"
+      :mention -> "Mentioned"
       _ -> "Unknown notification"
     end
 
     text = case content.type do
       :invitation -> "You ware invited to channel #{content.channel_id}"
-      
+      :mention -> "You were mentioned on the #{content.channel_id} channel"
+      _ -> "Something call you"
     end
   end
 end

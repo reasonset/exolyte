@@ -71,6 +71,21 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
+// Handle long background suspension on mobile devices to prevent LiveView state corruption
+let hiddenTime = null;
+const RELOAD_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    hiddenTime = Date.now();
+  } else if (document.visibilityState === "visible") {
+    if (hiddenTime && (Date.now() - hiddenTime > RELOAD_THRESHOLD_MS)) {
+      window.location.reload();
+    }
+    hiddenTime = null;
+  }
+});
+
 // The lines below enable quality of life phoenix_live_reload
 // development features:
 //

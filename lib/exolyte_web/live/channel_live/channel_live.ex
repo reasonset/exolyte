@@ -27,7 +27,7 @@ defmodule ExolyteWeb.ChannelLive do
        ssocket
        |> assign(:channel_id, channel_id)
        |> assign(:channel_name, channel_name)
-       |> assign(:messages, [])
+       |> stream(:messages, [], dom_id: fn msg -> "msg-#{msg["timestamp"]}-#{msg["user_id"]}" end)
        |> assign(:oldest_index, nil)
        |> assign(:has_more, false)
        |> assign(:search_result, nil)
@@ -49,9 +49,8 @@ defmodule ExolyteWeb.ChannelLive do
         <div class="navbar bg-base-100 shadow-sm">
           <label for="channel-drawer" class="btn drawer-button"><%= @channel_name %></label>
         </div>
-        <div id="chat-messages" class="overflow-y-auto pb-20 flex-1" phx-hook="ChatContainerHook" data-oldest-index={@oldest_index} data-has-more={if @has_more, do: "true", else: "false"}>
-          <%= for msg <- @messages do %>
-            <div class={"chat #{if msg["user_id"] == @current_user.id, do: "chat-end", else: "chat-start"}"}>
+        <div id="chat-messages" class="overflow-y-auto pb-20 flex-1" phx-hook="ChatContainerHook" data-oldest-index={@oldest_index} data-has-more={if @has_more, do: "true", else: "false"} phx-update="stream">
+          <div :for={{dom_id, msg} <- @streams.messages} id={dom_id} class={"chat #{if msg["user_id"] == @current_user.id, do: "chat-end", else: "chat-start"}"}>
             <div class="chat-header">
               <span style={"color: #{Map.get(@channel_user_colors, msg["user_id"], "#999999")}"} class="text-sm item-center inline-flex leading-none">
               <%= if Map.get(@channel_user_names, msg["user_id"]) do %>
@@ -67,7 +66,6 @@ defmodule ExolyteWeb.ChannelLive do
               <%= raw(msg["content"]) %>
             </div>
           </div>
-        <% end %>
         </div>
         <div class="bg-base-100 border-t p-3">
           <div>
@@ -235,7 +233,7 @@ defmodule ExolyteWeb.ChannelLive do
 
     {:noreply,
      socket
-     |> assign(:messages, format_messages(log["messages"]))
+     |> stream(:messages, format_messages(log["messages"]))
      |> assign(:oldest_index, log["index"])
      |> assign(:has_more, log["index"] > 1)}
   end
@@ -245,7 +243,7 @@ defmodule ExolyteWeb.ChannelLive do
       {:noreply, socket}
     else
       socket = push_event(socket, "sound_receive", %{})
-      {:noreply, assign(socket, :messages, socket.assigns.messages ++ [message])}
+      {:noreply, stream_insert(socket, :messages, message)}
     end
   end
 
@@ -255,7 +253,7 @@ defmodule ExolyteWeb.ChannelLive do
       {:noreply, socket}
     else
       socket = push_event(socket, "sound_receive", %{})
-      {:noreply, assign(socket, :messages, socket.assigns.messages ++ [message])}
+      {:noreply, stream_insert(socket, :messages, message)}
     end
   end
 
@@ -271,9 +269,15 @@ defmodule ExolyteWeb.ChannelLive do
       {:ok, raw} = File.read(path)
       log = Jason.decode!(raw)
 
+      socket =
+        format_messages(log["messages"])
+        |> Enum.reverse()
+        |> Enum.reduce(socket, fn msg, acc ->
+          stream_insert(acc, :messages, msg, at: 0)
+        end)
+
       {:noreply,
        socket
-       |> assign(:messages, format_messages(log["messages"]) ++ socket.assigns.messages)
        |> assign(:oldest_index, log["index"])}
     else
       {:noreply, socket}
@@ -300,7 +304,7 @@ defmodule ExolyteWeb.ChannelLive do
       Exolyte.Notification.channel_update(socket.assigns.channel_id, message["timestamp"])
 
       socket = push_event(socket, "sound_sent", %{})
-      {:noreply, assign(socket, :messages, socket.assigns.messages ++ [message])}
+      {:noreply, stream_insert(socket, :messages, message)}
     end
   end
 
