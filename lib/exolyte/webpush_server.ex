@@ -5,7 +5,11 @@ defmodule Exolyte.WebPushServer do
     GenServer.start_link(__MODULE__, init, name: __MODULE__)
   end
 
-  def init(state), do: {:ok, state}
+  def init(state) do
+    # Fetch VAPID details to ensure they are generated and set in Application env
+    Exolyte.WebPush.get_vapid_details()
+    {:ok, state}
+  end
 
   def handle_cast({:subscribe, user_id, subscription}, _state) do
     db = Exolyte.WebPushCubDB.get_db()
@@ -22,7 +26,7 @@ defmodule Exolyte.WebPushServer do
     db = Exolyte.WebPushCubDB.get_db()
     subscriptions = CubDB.get(db, {:webpush, user_id}, %{})
     
-    vapid_details = Exolyte.WebPush.get_vapid_details()
+    _vapid_details = Exolyte.WebPush.get_vapid_details()
     converted = Exolyte.WebPush.convert_notification_content(content)
     payload = Jason.encode!(converted)
 
@@ -35,7 +39,7 @@ defmodule Exolyte.WebPushServer do
         endpoint: endpoint
       }
       
-      case WebPushEncryption.send_web_push(payload, web_push_sub, vapid_details) do
+      case WebPushEncryption.send_web_push(payload, web_push_sub) do
         {:ok, %{status_code: status}} when status in 200..299 ->
           :ok
         {:ok, %{status_code: status}} when status in 400..499 ->

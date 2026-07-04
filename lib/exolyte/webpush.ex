@@ -9,20 +9,28 @@ defmodule Exolyte.WebPush do
 
   def get_vapid_details do
     db = Exolyte.DB.get_db()
-    case CubDB.get(db, {:webpush_vapid, :keys}) do
+    keys = case CubDB.get(db, {:webpush_vapid, :keys}) do
       nil ->
         {public, private} = :crypto.generate_key(:ecdh, :prime256v1)
         public_b64 = Base.url_encode64(public, padding: false)
         private_b64 = Base.url_encode64(private, padding: false)
-        keys = %{
+        new_keys = %{
           subject: "mailto:admin@localhost",
           public_key: public_b64,
           private_key: private_b64
         }
-        CubDB.put(db, {:webpush_vapid, :keys}, keys)
-        keys
-      keys -> keys
+        CubDB.put(db, {:webpush_vapid, :keys}, new_keys)
+        new_keys
+      existing_keys -> existing_keys
     end
+
+    Application.put_env(:web_push_encryption, :vapid_details, [
+      subject: keys.subject,
+      public_key: keys.public_key,
+      private_key: keys.private_key
+    ])
+
+    keys
   end
 
   def notify(user_id, content) do
