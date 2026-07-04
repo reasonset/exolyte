@@ -1,8 +1,7 @@
 defmodule Exolyte.Notification do
   def read(user_id, channel_id) do
     db = Exolyte.NotificationCubDB.get_db()
-    json = CubDB.get(db, {:notifications, user_id})
-    data = if json, do: JSON.decode(json), else: %{}
+    data = CubDB.get(db, {:notifications, user_id}, %{})
 
     notifications = Map.get(data, channel_id)
     new_data = Map.delete(data, channel_id)
@@ -18,8 +17,7 @@ defmodule Exolyte.Notification do
 
   def get(user_id) do
     db = Exolyte.NotificationCubDB.get_db()
-    json = CubDB.get(db, {:notifications, user_id})
-    if json, do: JSON.decode(json), else: %{}
+    CubDB.get(db, {:notifications, user_id}, %{})
   end
 
   def channel_update(channel_id, timestamp) do
@@ -35,5 +33,13 @@ defmodule Exolyte.Notification do
 
   def message_received(user_id, channel_id, timestamp) do
     GenServer.cast(Exolyte.NotificationServer, {:message_received, user_id, channel_id, timestamp})
+  end
+
+  def mention(user_id, channel_id, content) do
+    GenServer.cast(Exolyte.NotificationServer, {:mention, user_id, channel_id, content})
+  end
+
+  def invitation(user_id, channel_id) do
+    GenServer.cast(Exolyte.NotificationServer, {:invitation, user_id, channel_id})
   end
 end

@@ -16,6 +16,8 @@ defmodule Exolyte.Application do
       {Exolyte.DB, []},
       {Exolyte.NotificationCubDB, []},
       {Exolyte.NotificationServer, []},
+      {Exolyte.WebPushCubDB, []},
+      {Exolyte.WebPushServer, []},
       {Exolyte.Settings, []},
 
       # Start a worker by calling: Exolyte.Worker.start_link(arg)

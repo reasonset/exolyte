@@ -41,6 +41,7 @@ defmodule Exolyte.Friend do
 
           unless MapSet.member?(blocked, channel_id) do
             ChannelDB.add_user(channel_id, user_b_id)
+            Exolyte.Notification.invitation(user_b_id, channel_id)
           end
         end
 

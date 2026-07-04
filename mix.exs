@@ -68,7 +68,8 @@ defmodule Exolyte.MixProject do
       {:uuid, "~> 1.1"},
       {:mdex, "~> 0.13"},
       {:html_sanitize_ex, "~> 1.4"},
-      {:eqrcode, "~> 0.1.10"}
+      {:eqrcode, "~> 0.1.10"},
+      {:web_push_encryption, "~> 0.3.1"}
     ]
   end
 

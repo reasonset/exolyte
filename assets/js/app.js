@@ -48,6 +48,63 @@ Hooks.AdminAuth = {
   }
 }
 
+Hooks.WebPush = {
+  mounted() {
+    const btn = this.el.querySelector("#webpush-subscribe-btn")
+    const statusEl = this.el.querySelector("#webpush-status")
+    const vapidPublicKey = this.el.dataset.publicKey
+    
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      statusEl.textContent = "WebPush is not supported in this browser."
+      btn.disabled = true
+      return
+    }
+
+    btn.addEventListener("click", async () => {
+      try {
+        const permission = await Notification.requestPermission()
+        if (permission !== "granted") {
+          statusEl.textContent = "Notification permission denied."
+          return
+        }
+
+        const registration = await navigator.serviceWorker.ready
+        
+        let subscription = await registration.pushManager.getSubscription()
+        if (!subscription) {
+          const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey)
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: convertedVapidKey
+          })
+        }
+        
+        const subData = JSON.parse(JSON.stringify(subscription))
+        this.pushEvent("webpush_subscribe", { subscription: subData })
+        statusEl.textContent = "Subscribed successfully!"
+        statusEl.classList.add("text-success")
+      } catch (err) {
+        console.error("WebPush Error:", err)
+        statusEl.textContent = "Failed to subscribe."
+        statusEl.classList.add("text-error")
+      }
+    })
+  }
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - base64String.length % 4) % 4)
+  const base64 = (base64String + padding)
+    .replace(/\-/g, "+")
+    .replace(/_/g, "/")
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
+
 import topbar from "../vendor/topbar"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
@@ -70,6 +127,21 @@ liveSocket.connect()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
+
+// Handle long background suspension on mobile devices to prevent LiveView state corruption
+let hiddenTime = null;
+const RELOAD_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    hiddenTime = Date.now();
+  } else if (document.visibilityState === "visible") {
+    if (hiddenTime && (Date.now() - hiddenTime > RELOAD_THRESHOLD_MS)) {
+      window.location.reload();
+    }
+    hiddenTime = null;
+  }
+});
 
 // The lines below enable quality of life phoenix_live_reload
 // development features:

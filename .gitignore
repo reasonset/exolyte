@@ -16,6 +16,7 @@ erl_crash.dump
 /priv/user_create
 /priv/settings.json
 /priv/notifications
+/priv/webpush
 logs
 /site_local
 AGENT.md
