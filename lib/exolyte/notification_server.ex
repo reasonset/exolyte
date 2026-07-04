@@ -24,7 +24,9 @@ defmodule Exolyte.NotificationServer do
   
     item = %{
       type: :mention,
-      content: content
+      content: content,
+      channel_id: channel_id,
+      timestamp: System.os_time(:second)
     }
 
     CubDB.update(db, {:notifications, user_id}, %{channel_id => [item]}, fn data ->
@@ -32,6 +34,8 @@ defmodule Exolyte.NotificationServer do
         [item | existing_list]
       end)
     end)
+
+    Exolyte.WebPush.notify(user_id, item)
 
     {:noreply, nil}
   end
@@ -41,6 +45,8 @@ defmodule Exolyte.NotificationServer do
 
     item = %{
       type: :invitation,
+      channel_id: channel_id,
+      timestamp: System.os_time(:second),
       content: %{
         timestamp: System.os_time(:second),
         channel_id: channel_id
@@ -52,6 +58,8 @@ defmodule Exolyte.NotificationServer do
         [item | existing_list]
       end)
     end)
+
+    Exolyte.WebPush.notify(user_id, item)
 
     {:noreply, nil}
   end

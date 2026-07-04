@@ -31,6 +31,16 @@ defmodule ExolyteWeb.UserLive.Show do
 
     settings = Exolyte.Settings.get()
 
+    notifications_map = Exolyte.Notification.get(user_id)
+    notifications =
+      notifications_map
+      |> Map.values()
+      |> List.flatten()
+      |> Enum.sort_by(& &1.timestamp, :desc)
+
+    last_notification_read_at = Map.get(user, "last_notification_read_at", 0)
+    unread_count = Enum.count(notifications, fn item -> item.timestamp > last_notification_read_at end)
+
     {:ok,
      socket
      |> assign(:user_id, user_id)
@@ -41,15 +51,70 @@ defmodule ExolyteWeb.UserLive.Show do
      |> assign(:search_result, nil)
      |> assign(:search_error, nil)
      |> assign(:settings, settings)
+     |> assign(:notifications, notifications)
+     |> assign(:last_notification_read_at, last_notification_read_at)
+     |> assign(:unread_count, unread_count)
      |> assign(:generated_link, nil)
      |> assign(:generated_qr, nil)
      |> assign(:channel_error, nil)
+     |> assign(:current_user, user)
+     |> assign(:vapid_public_key, Exolyte.WebPush.get_vapid_details().public_key)
      |> assign(:page_title, "MyPage - #{ Map.get(settings, "instance_name") || "Exolyte"}")}
   end
 
   def render(assigns) do
     ~H"""
     <div class="max-w-xl mx-auto mt-10">
+      <div class="navbar bg-base-100 shadow-xl rounded-box mb-4 px-4">
+        <div class="flex-1">
+          <a class="text-xl font-bold">Exolyte</a>
+        </div>
+        <div class="flex-none">
+          <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle" phx-click="open_notifications">
+              <div class="indicator">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                <%= if @unread_count > 0 do %>
+                  <span class="badge badge-xs badge-primary indicator-item"><%= @unread_count %></span>
+                <% end %>
+              </div>
+            </div>
+            <div tabindex="0" class="mt-3 z-[1] card card-compact dropdown-content w-80 bg-base-200 shadow-xl border border-base-300">
+              <div class="card-body max-h-96 overflow-y-auto">
+                <div class="flex justify-between items-center mb-2">
+                  <h3 class="font-bold text-lg"><%= gettext("Notifications") %></h3>
+                  <%= if length(@notifications) > 0 do %>
+                    <button class="btn btn-xs btn-outline btn-error" phx-click="clear_notifications"><%= gettext("Clear All") %></button>
+                  <% end %>
+                </div>
+                
+                <%= if length(@notifications) == 0 do %>
+                  <p class="text-base-content/60"><%= gettext("No notifications.") %></p>
+                <% else %>
+                  <ul class="menu bg-base-100 w-full p-0 rounded-box overflow-hidden">
+                    <%= for item <- @notifications do %>
+                      <% is_unread = item.timestamp > @last_notification_read_at %>
+                      <li class={if is_unread, do: "bg-base-300 border-l-4 border-primary", else: "border-l-4 border-transparent"}>
+                        <a href={"/channel/#{item.channel_id}"} class="flex flex-col items-start gap-1 p-3">
+                          <span class="text-xs text-base-content/60"><%= format_time(item.timestamp) %></span>
+                          <%= case item.type do %>
+                            <% :invitation -> %>
+                              <span class="font-bold text-sm"><%= gettext("Invited to channel: %{channel}", channel: item.channel_id) %></span>
+                            <% :mention -> %>
+                              <span class="font-bold text-sm"><%= gettext("Mentioned in %{channel}", channel: item.channel_id) %></span>
+                              <span class="text-xs truncate w-full text-base-content/80"><%= item.content %></span>
+                          <% end %>
+                        </a>
+                      </li>
+                    <% end %>
+                  </ul>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="card bg-base-100 shadow-xl mb-4">
         <div class="card-body">
           <h2 class="card-title text-xl"><%= gettext("Add Friend") %></h2>
@@ -170,6 +235,21 @@ defmodule ExolyteWeb.UserLive.Show do
             <input type="text" class="input" placeholder={gettext("Display Name")} name="disp_name" value={@current_user.display_name} />
             <button class="btn btn-neutral mt-4" type="submit">save</button>
           </form>
+          
+          <div class="divider"></div>
+          
+          <form phx-submit="update_unifiedpush">
+            <label class="label"><%= gettext("UnifiedPush Endpoint URL") %></label>
+            <input type="url" class="input w-full" placeholder="https://..." name="endpoint" value={@current_user.unifiedpush_endpoint} />
+            <button class="btn btn-neutral mt-4" type="submit"><%= gettext("Save UnifiedPush Endpoint") %></button>
+          </form>
+
+          <div class="divider"></div>
+          
+          <div id="webpush-container" phx-hook="WebPush" data-public-key={@vapid_public_key}>
+            <button id="webpush-subscribe-btn" class="btn btn-primary w-full"><%= gettext("Enable WebPush Notifications") %></button>
+            <p id="webpush-status" class="text-sm mt-2 text-center"></p>
+          </div>
       </fieldset>
 
       <%= if Map.get(@settings, "allow_user_invites", false) do %>
@@ -249,6 +329,22 @@ defmodule ExolyteWeb.UserLive.Show do
      socket
      |> assign(:current_user, current_user)
      |> assign(:user_theme, theme)}
+  end
+
+  def handle_event("update_unifiedpush", %{"endpoint" => endpoint}, socket) do
+    endpoint = String.trim(endpoint)
+    endpoint = if endpoint == "", do: nil, else: endpoint
+    
+    Exolyte.UserDB.update_user(socket.assigns.user_id, %{unifiedpush_endpoint: endpoint})
+    
+    current_user = Map.put(socket.assigns.current_user, :unifiedpush_endpoint, endpoint)
+    
+    {:noreply, assign(socket, :current_user, current_user)}
+  end
+
+  def handle_event("webpush_subscribe", %{"subscription" => subscription}, socket) do
+    Exolyte.WebPush.subscribe(socket.assigns.user_id, subscription)
+    {:noreply, socket}
   end
 
   def handle_event("search_user", %{"search_id" => search_id}, socket) do
@@ -364,5 +460,24 @@ defmodule ExolyteWeb.UserLive.Show do
     else
       {:noreply, assign(socket, channel_error: gettext("Invalid channel ID format."))}
     end
+  end
+  def handle_event("open_notifications", _, socket) do
+    timestamp = System.os_time(:second)
+    Exolyte.UserDB.update_user(socket.assigns.user_id, %{last_notification_read_at: timestamp})
+    
+    current_user = Map.put(socket.assigns.current_user, "last_notification_read_at", timestamp)
+    
+    {:noreply, assign(socket, unread_count: 0, last_notification_read_at: timestamp, current_user: current_user)}
+  end
+
+  def handle_event("clear_notifications", _, socket) do
+    Exolyte.Notification.clear(socket.assigns.user_id)
+    {:noreply, assign(socket, notifications: [], unread_count: 0)}
+  end
+
+  defp format_time(unix_ts) do
+    unix_ts
+    |> DateTime.from_unix!()
+    |> Calendar.strftime("%x %H:%M")
   end
 end

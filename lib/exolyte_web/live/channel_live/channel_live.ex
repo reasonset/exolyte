@@ -303,6 +303,13 @@ defmodule ExolyteWeb.ChannelLive do
 
       Exolyte.Notification.channel_update(socket.assigns.channel_id, message["timestamp"])
 
+      mentions = parse_mentions(String.trim(content)) |> Enum.uniq()
+      for user <- mentions do
+        if MapSet.member?(socket.assigns.channel_info.users, user) do
+          Exolyte.Notification.mention(user, socket.assigns.channel_id, String.trim(content))
+        end
+      end
+
       socket = push_event(socket, "sound_sent", %{})
       {:noreply, stream_insert(socket, :messages, message)}
     end
@@ -378,6 +385,8 @@ defmodule ExolyteWeb.ChannelLive do
             true ->
               case Exolyte.ChannelDB.add_user(socket.assigns.channel_id, target_id) do
                 {:ok, updated_channel} ->
+                  Exolyte.Notification.invitation(target_id, socket.assigns.channel_id)
+                  
                   {:noreply,
                    socket
                    |> set_channel_info(updated_channel)
@@ -444,12 +453,6 @@ defmodule ExolyteWeb.ChannelLive do
     end
   end
 
-  defp format_time(unix_ts) do
-    unix_ts
-    |> DateTime.from_unix!()
-    |> Calendar.strftime("%x %H:%M")
-  end
-
   defp format_messages(messages) do
     Enum.map(messages, fn message ->
       format_message(message)
@@ -457,13 +460,48 @@ defmodule ExolyteWeb.ChannelLive do
   end
 
   defp format_message(message) do
+    content = message["content"]
+    mentions = parse_mentions(content) |> Enum.uniq()
+
     message_marked =
-      message["content"]
+      content
       |> MDEx.to_html!(
         extension: [table: true, tasklist: true, strikethrough: true, autolink: true]
       )
 
-    Map.put(message, "content", message_marked)
+    message_styled = Enum.reduce(mentions, message_marked, fn user, acc ->
+      String.replace(acc, ~r/(^|\s|>)(@#{user})($|\s|<)/, "\\1<span class=\"text-accent font-bold\">\\2</span>\\3")
+    end)
+
+    Map.put(message, "content", message_styled)
+  end
+
+  defp parse_mentions(content) do
+    lines = String.split(content, ~r/\r\n|\n|\r/)
+    first_line = List.first(lines) || ""
+
+    if String.trim(first_line) == "" do
+      []
+    else
+      Enum.reduce_while(lines, [], fn line, acc ->
+        if String.trim(line) == "" do
+          {:halt, acc}
+        else
+          tokens = String.split(line)
+          {mentions, rest} = Enum.split_while(tokens, fn token ->
+            Regex.match?(~r/^@[a-zA-Z0-9_]+$/, token)
+          end)
+
+          extracted = Enum.map(mentions, fn "@" <> user -> user end)
+
+          if rest == [] do
+            {:cont, acc ++ extracted}
+          else
+            {:halt, acc ++ extracted}
+          end
+        end
+      end)
+    end
   end
 
   defp set_channel_info(channel_info, socket) do

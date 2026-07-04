@@ -1,0 +1,21 @@
+{
+  "name": "Exolyte",
+  "short_name": "Exolyte",
+  "start_url": "/mypage",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#29d",
+  "description": "Exolyte web app",
+  "icons": [
+    {
+      "src": "/images/exolyte-logo-sq-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/exolyte-logo-sq.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
