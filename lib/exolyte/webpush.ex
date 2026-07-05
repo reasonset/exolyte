@@ -24,11 +24,9 @@ defmodule Exolyte.WebPush do
       existing_keys -> existing_keys
     end
 
-    Application.put_env(:web_push_encryption, :vapid_details, [
-      subject: keys.subject,
-      public_key: keys.public_key,
-      private_key: keys.private_key
-    ])
+    Application.put_env(:web_push_elixir, :vapid_subject, keys.subject)
+    Application.put_env(:web_push_elixir, :vapid_public_key, keys.public_key)
+    Application.put_env(:web_push_elixir, :vapid_private_key, keys.private_key)
 
     keys
   end
