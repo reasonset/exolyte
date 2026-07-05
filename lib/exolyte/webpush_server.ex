@@ -28,7 +28,7 @@ defmodule Exolyte.WebPushServer do
     
     _vapid_details = Exolyte.WebPush.get_vapid_details()
     converted = Exolyte.WebPush.convert_notification_content(content)
-    payload = Jason.encode!(converted)
+    payload = JSON.encode!(converted)
 
     Enum.each(subscriptions, fn {endpoint, sub} ->
       web_push_sub = %{
@@ -39,7 +39,7 @@ defmodule Exolyte.WebPushServer do
         "endpoint" => endpoint
       }
       
-      case WebPushElixir.send_notification(web_push_sub, payload) do
+      case WebPushElixir.send_notification(JSON.encode!(web_push_sub), payload) do
         {:ok, _response} ->
           :ok
         {:error, :expired} ->
