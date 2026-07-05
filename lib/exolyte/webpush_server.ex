@@ -28,22 +28,23 @@ defmodule Exolyte.WebPushServer do
     
     _vapid_details = Exolyte.WebPush.get_vapid_details()
     converted = Exolyte.WebPush.convert_notification_content(content)
-    payload = Jason.encode!(converted)
+    payload = JSON.encode!(converted)
 
     Enum.each(subscriptions, fn {endpoint, sub} ->
       web_push_sub = %{
-        keys: %{
-          auth: sub["keys"]["auth"],
-          p256dh: sub["keys"]["p256dh"]
+        "keys" => %{
+          "auth" => sub["keys"]["auth"],
+          "p256dh" => sub["keys"]["p256dh"]
         },
-        endpoint: endpoint
+        "endpoint" => endpoint
       }
       
-      case WebPushEncryption.send_web_push(payload, web_push_sub) do
-        {:ok, %{status_code: status}} when status in 200..299 ->
+      case WebPushElixir.send_notification(JSON.encode!(web_push_sub), payload) do
+        {:ok, _response} ->
           :ok
-        {:ok, %{status_code: status}} when status in 400..499 ->
-          # e.g., 404 Not Found, 410 Gone means the subscription expired
+        {:error, :expired} ->
+          unsubscribe({user_id, endpoint}, nil)
+        {:error, {:http_error, status, _body}} when status in 400..499 ->
           unsubscribe({user_id, endpoint}, nil)
         {:error, _} ->
           :error
