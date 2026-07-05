@@ -2,7 +2,12 @@
 
 # version 1
 
-## v1.0.0
+## v1.0.1 (2026-07-05)
+
+* Improve mention display
+* Improve notification drop-down
+
+## v1.0.0 (2026-07-04)
 
 * Add notification and push notification (WebPush, UnifiedPush) feature
 * Add mention

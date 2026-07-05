@@ -79,8 +79,8 @@ defmodule ExolyteWeb.UserLive.Show do
                 <% end %>
               </div>
             </div>
-            <div tabindex="0" class="mt-3 z-[1] card card-compact dropdown-content w-80 bg-base-200 shadow-xl border border-base-300">
-              <div class="card-body max-h-96 overflow-y-auto">
+            <div tabindex="0" class="mt-3 z-[1] card card-compact dropdown-content w-[90vw] sm:w-96 bg-base-200 shadow-xl border border-base-300">
+              <div class="card-body max-h-[70vh] overflow-y-auto overflow-x-hidden">
                 <div class="flex justify-between items-center mb-2">
                   <h3 class="font-bold text-lg"><%= gettext("Notifications") %></h3>
                   <%= if length(@notifications) > 0 do %>
@@ -95,14 +95,14 @@ defmodule ExolyteWeb.UserLive.Show do
                     <%= for item <- @notifications do %>
                       <% is_unread = item.timestamp > @last_notification_read_at %>
                       <li class={if is_unread, do: "bg-base-300 border-l-4 border-primary", else: "border-l-4 border-transparent"}>
-                        <a href={"/channel/#{item.channel_id}"} class="flex flex-col items-start gap-1 p-3">
+                        <a href={"/channel/#{item.channel_id}"} class="flex flex-col items-start gap-1 p-3 w-full overflow-hidden">
                           <span class="text-xs text-base-content/60"><%= format_time(item.timestamp) %></span>
                           <%= case item.type do %>
                             <% :invitation -> %>
-                              <span class="font-bold text-sm"><%= gettext("Invited to channel: %{channel}", channel: item.channel_id) %></span>
+                              <span class="font-bold text-sm break-words whitespace-normal w-full"><%= gettext("Invited to channel: %{channel}", channel: item.channel_id) %></span>
                             <% :mention -> %>
-                              <span class="font-bold text-sm"><%= gettext("Mentioned in %{channel}", channel: item.channel_id) %></span>
-                              <span class="text-xs truncate w-full text-base-content/80"><%= item.content %></span>
+                              <span class="font-bold text-sm break-words whitespace-normal w-full"><%= gettext("Mentioned in %{channel}", channel: item.channel_id) %></span>
+                              <span class="text-xs break-words whitespace-normal w-full text-base-content/80 line-clamp-3"><%= item.content %></span>
                           <% end %>
                         </a>
                       </li>

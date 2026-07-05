@@ -470,7 +470,7 @@ defmodule ExolyteWeb.ChannelLive do
       )
 
     message_styled = Enum.reduce(mentions, message_marked, fn user, acc ->
-      String.replace(acc, ~r/(^|\s|>)(@#{user})($|\s|<)/, "\\1<span class=\"text-accent font-bold\">\\2</span>\\3")
+      String.replace(acc, ~r/(^|\s|>)(@#{user})($|\s|<)/, "\\1<span class=\"bg-base-100 text-base-content font-bold px-1 rounded shadow-sm\">\\2</span>\\3")
     end)
 
     Map.put(message, "content", message_styled)
