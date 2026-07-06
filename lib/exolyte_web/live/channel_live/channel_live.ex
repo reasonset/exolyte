@@ -4,6 +4,7 @@ defmodule ExolyteWeb.ChannelLive do
   def mount(%{"channel_id" => channel_id}, session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Exolyte.PubSub, "channel:#{channel_id}")
+      Registry.register(Exolyte.ChannelViewerRegistry, channel_id, session["user_id"])
       send(self(), "load_latest")
     end
 
@@ -306,7 +307,12 @@ defmodule ExolyteWeb.ChannelLive do
       mentions = parse_mentions(String.trim(content)) |> Enum.uniq()
       for user <- mentions do
         if MapSet.member?(socket.assigns.channel_info.users, user) do
-          Exolyte.Notification.mention(user, socket.assigns.channel_id, String.trim(content))
+          viewers = Registry.lookup(Exolyte.ChannelViewerRegistry, socket.assigns.channel_id)
+          is_viewing? = Enum.any?(viewers, fn {_pid, viewer_user_id} -> viewer_user_id == user end)
+
+          if not is_viewing? do
+            Exolyte.Notification.mention(user, socket.assigns.channel_id, String.trim(content))
+          end
         end
       end
 

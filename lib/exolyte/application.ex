@@ -12,6 +12,7 @@ defmodule Exolyte.Application do
       {DNSCluster, query: Application.get_env(:exolyte, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Exolyte.PubSub},
       {Registry, keys: :unique, name: ChatlogRegistry},
+      {Registry, keys: :duplicate, name: Exolyte.ChannelViewerRegistry},
       {DynamicSupervisor, strategy: :one_for_one, name: ChatlogSupervisor},
       {Exolyte.DB, []},
       {Exolyte.NotificationCubDB, []},
