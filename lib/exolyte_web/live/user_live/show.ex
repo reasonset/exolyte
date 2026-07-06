@@ -21,7 +21,7 @@ defmodule ExolyteWeb.UserLive.Show do
       end)
 
     user = Exolyte.UserDB.get_user(user_id)
-    blocked_channels = Map.get(user, "blocked_channels", MapSet.new()) |> MapSet.to_list()
+    blocked_channels = Map.get(user, :blocked_channels, MapSet.new()) |> MapSet.to_list()
 
     {dm_channels, regular_channels} =
       Enum.split_with(channels, fn
@@ -38,7 +38,7 @@ defmodule ExolyteWeb.UserLive.Show do
       |> List.flatten()
       |> Enum.sort_by(& &1.timestamp, :desc)
 
-    last_notification_read_at = Map.get(user, "last_notification_read_at", 0)
+    last_notification_read_at = Map.get(user, :last_notification_read_at, 0)
     unread_count = Enum.count(notifications, fn item -> item.timestamp > last_notification_read_at end)
 
     {:ok,
@@ -239,7 +239,12 @@ defmodule ExolyteWeb.UserLive.Show do
             <label class="label cursor-pointer mt-4 flex justify-between">
               <span class="label-text"><%= gettext("Notify all DMs") %></span>
               <input type="hidden" name="notify_all_dms" value="false" />
-              <input type="checkbox" name="notify_all_dms" value="true" class="toggle toggle-primary" checked={Map.get(@current_user, :notify_all_dms, Map.get(@current_user, "notify_all_dms", true))} />
+              <input type="checkbox" name="notify_all_dms" value="true" class="toggle toggle-primary" checked={Map.get(@current_user, :notify_all_dms, true)} />
+            </label>
+            <label class="label cursor-pointer mt-4 flex justify-between">
+              <span class="label-text"><%= gettext("Play Sound") %></span>
+              <input type="hidden" name="play_sound" value="false" />
+              <input type="checkbox" name="play_sound" value="true" class="toggle toggle-primary" checked={Map.get(@current_user, :play_sound, true)} />
             </label>
             <button class="btn btn-neutral mt-4 w-full" type="submit">save</button>
           </form>
@@ -329,10 +334,11 @@ defmodule ExolyteWeb.UserLive.Show do
     display_name = params["disp_name"]
     user_theme = params["theme_name"]
     notify_all_dms = params["notify_all_dms"] == "true"
+    play_sound = params["play_sound"] == "true"
 
     theme = if MapSet.member?(@themes, user_theme), do: user_theme, else: "kawaiifb"
 
-    newsetting = %{display_name: display_name, theme: theme, notify_all_dms: notify_all_dms}
+    newsetting = %{display_name: display_name, theme: theme, notify_all_dms: notify_all_dms, play_sound: play_sound}
     Exolyte.UserDB.update_user(socket.assigns.user_id, newsetting)
 
     current_user = Map.merge(socket.assigns.current_user, newsetting)
@@ -428,7 +434,7 @@ defmodule ExolyteWeb.UserLive.Show do
       Exolyte.UserDB.unblock_channel(socket.assigns.user_id, socket.assigns.unblock_target)
 
       user = Exolyte.UserDB.get_user(socket.assigns.user_id)
-      blocked_channels = Map.get(user, "blocked_channels", MapSet.new()) |> MapSet.to_list()
+      blocked_channels = Map.get(user, :blocked_channels, MapSet.new()) |> MapSet.to_list()
 
       {:noreply, assign(socket, unblock_target: nil, blocked_channels: blocked_channels)}
     else
@@ -477,7 +483,7 @@ defmodule ExolyteWeb.UserLive.Show do
     timestamp = System.os_time(:second)
     Exolyte.UserDB.update_user(socket.assigns.user_id, %{last_notification_read_at: timestamp})
     
-    current_user = Map.put(socket.assigns.current_user, "last_notification_read_at", timestamp)
+    current_user = Map.put(socket.assigns.current_user, :last_notification_read_at, timestamp)
     
     {:noreply, assign(socket, unread_count: 0, last_notification_read_at: timestamp, current_user: current_user)}
   end

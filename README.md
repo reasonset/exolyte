@@ -137,3 +137,13 @@ mix run scripts/api_cli.exs revoke_admin_key <publickey>
 Dynamically configurable instance settings are stored in `/priv/settings.json`. These settings can also be configured from the Admin Console.
 
 These settings include whether users are allowed to create invitations or channels.
+
+## Update Instance
+
+* `git pull`
+* `mix deps.get`
+* `mix compile`
+* `mix run scripts/migration_cli.exs user`
+* `mix run scripts/migration_cli.exs channel`
+* `mix assets.deploy` (Prod only)
+* Restart Exolyte

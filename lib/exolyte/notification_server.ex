@@ -43,7 +43,7 @@ defmodule Exolyte.NotificationServer do
   def handle_cast({:dm, user_id, channel_id, content}, _state) do
     user_data = Exolyte.UserDB.get_user(user_id)
     notify_all_dms = if user_data do
-      Map.get(user_data, :notify_all_dms, Map.get(user_data, "notify_all_dms", true))
+      Map.get(user_data, :notify_all_dms, true)
     else
       true
     end

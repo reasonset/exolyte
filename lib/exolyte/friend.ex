@@ -37,7 +37,7 @@ defmodule Exolyte.Friend do
         user_b = UserDB.get_user(user_b_id)
 
         if user_b do
-          blocked = Map.get(user_b, "blocked_channels", MapSet.new())
+          blocked = Map.get(user_b, :blocked_channels, MapSet.new())
 
           unless MapSet.member?(blocked, channel_id) do
             ChannelDB.add_user(channel_id, user_b_id)

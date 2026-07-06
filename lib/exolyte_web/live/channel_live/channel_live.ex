@@ -244,7 +244,12 @@ defmodule ExolyteWeb.ChannelLive do
     if message["user_id"] == socket.assigns.user_id do
       {:noreply, socket}
     else
-      socket = push_event(socket, "sound_receive", %{})
+      socket =
+        if Map.get(socket.assigns.current_user, :play_sound, true) do
+          push_event(socket, "sound_receive", %{})
+        else
+          socket
+        end
       {:noreply, stream_insert(socket, :messages, message)}
     end
   end
@@ -254,7 +259,12 @@ defmodule ExolyteWeb.ChannelLive do
     if sender_session_id == socket.assigns.session_id do
       {:noreply, socket}
     else
-      socket = push_event(socket, "sound_receive", %{})
+      socket =
+        if Map.get(socket.assigns.current_user, :play_sound, true) do
+          push_event(socket, "sound_receive", %{})
+        else
+          socket
+        end
       {:noreply, stream_insert(socket, :messages, message)}
     end
   end
@@ -330,7 +340,12 @@ defmodule ExolyteWeb.ChannelLive do
         end
       end
 
-      socket = push_event(socket, "sound_sent", %{})
+      socket =
+        if Map.get(socket.assigns.current_user, :play_sound, true) do
+          push_event(socket, "sound_sent", %{})
+        else
+          socket
+        end
       {:noreply, stream_insert(socket, :messages, message)}
     end
   end
@@ -384,7 +399,7 @@ defmodule ExolyteWeb.ChannelLive do
           {:noreply, assign(socket, search_error: gettext("User not found."))}
 
         user ->
-          blocked = Map.get(user, "blocked_channels", MapSet.new())
+          blocked = Map.get(user, :blocked_channels, MapSet.new())
           chop_id = socket.assigns.channel_info.chop
 
           blocked_chop_dm =
