@@ -40,6 +40,36 @@ defmodule Exolyte.NotificationServer do
     {:noreply, nil}
   end
 
+  def handle_cast({:dm, user_id, channel_id, content}, _state) do
+    user_data = Exolyte.UserDB.get_user(user_id)
+    notify_all_dms = if user_data do
+      Map.get(user_data, :notify_all_dms, Map.get(user_data, "notify_all_dms", true))
+    else
+      true
+    end
+
+    if notify_all_dms do
+      db = Exolyte.NotificationCubDB.get_db()
+    
+      item = %{
+        type: :dm,
+        content: content,
+        channel_id: channel_id,
+        timestamp: System.os_time(:second)
+      }
+
+      CubDB.update(db, {:notifications, user_id}, %{channel_id => [item]}, fn data ->
+        Map.update(data, channel_id, [item], fn existing_list ->
+          [item | existing_list]
+        end)
+      end)
+
+      Exolyte.WebPush.notify(user_id, item)
+    end
+
+    {:noreply, nil}
+  end
+
   def handle_cast({:invitation, user_id, channel_id}, _state) do
     db = Exolyte.NotificationCubDB.get_db()
 

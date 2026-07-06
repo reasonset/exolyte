@@ -27,6 +27,7 @@ defmodule Exolyte.UserDB do
     user_default = %{
       blocked_channels: MapSet.new(),
       unifiedpush_endpoint: nil,
+      notify_all_dms: true,
       created_at: DateTime.to_unix(now),
       created_at_iso: DateTime.to_iso8601(now)
     }

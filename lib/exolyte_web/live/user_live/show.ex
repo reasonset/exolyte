@@ -103,6 +103,9 @@ defmodule ExolyteWeb.UserLive.Show do
                             <% :mention -> %>
                               <span class="font-bold text-sm break-words whitespace-normal w-full"><%= gettext("Mentioned in %{channel}", channel: item.channel_id) %></span>
                               <span class="text-xs break-words whitespace-normal w-full text-base-content/80 line-clamp-3"><%= item.content %></span>
+                            <% :dm -> %>
+                              <span class="font-bold text-sm break-words whitespace-normal w-full"><%= gettext("New DM in %{channel}", channel: item.channel_id) %></span>
+                              <span class="text-xs break-words whitespace-normal w-full text-base-content/80 line-clamp-3"><%= item.content %></span>
                           <% end %>
                         </a>
                       </li>
@@ -233,7 +236,12 @@ defmodule ExolyteWeb.UserLive.Show do
             </select>
             <label class="label"><%= gettext("Display Name") %></label>
             <input type="text" class="input" placeholder={gettext("Display Name")} name="disp_name" value={@current_user.display_name} />
-            <button class="btn btn-neutral mt-4" type="submit">save</button>
+            <label class="label cursor-pointer mt-4 flex justify-between">
+              <span class="label-text"><%= gettext("Notify all DMs") %></span>
+              <input type="hidden" name="notify_all_dms" value="false" />
+              <input type="checkbox" name="notify_all_dms" value="true" class="toggle toggle-primary" checked={Map.get(@current_user, :notify_all_dms, Map.get(@current_user, "notify_all_dms", true))} />
+            </label>
+            <button class="btn btn-neutral mt-4 w-full" type="submit">save</button>
           </form>
           
           <div class="divider"></div>
@@ -315,12 +323,16 @@ defmodule ExolyteWeb.UserLive.Show do
 
   def handle_event(
         "update_user",
-        %{"disp_name" => display_name, "theme_name" => user_theme},
+        params,
         socket
       ) do
+    display_name = params["disp_name"]
+    user_theme = params["theme_name"]
+    notify_all_dms = params["notify_all_dms"] == "true"
+
     theme = if MapSet.member?(@themes, user_theme), do: user_theme, else: "kawaiifb"
 
-    newsetting = %{display_name: display_name, theme: theme}
+    newsetting = %{display_name: display_name, theme: theme, notify_all_dms: notify_all_dms}
     Exolyte.UserDB.update_user(socket.assigns.user_id, newsetting)
 
     current_user = Map.merge(socket.assigns.current_user, newsetting)
