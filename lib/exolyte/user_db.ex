@@ -27,6 +27,8 @@ defmodule Exolyte.UserDB do
     user_default = %{
       blocked_channels: MapSet.new(),
       unifiedpush_endpoint: nil,
+      notify_all_dms: true,
+      play_sound: true,
       created_at: DateTime.to_unix(now),
       created_at_iso: DateTime.to_iso8601(now)
     }
@@ -71,10 +73,10 @@ defmodule Exolyte.UserDB do
         {:error, :not_found}
 
       user ->
-        blocked = Map.get(user, "blocked_channels", MapSet.new())
+        blocked = Map.get(user, :blocked_channels, MapSet.new())
         updated_blocked = MapSet.put(blocked, channel_id)
 
-        CubDB.put(db, {:user, normalized_id}, Map.put(user, "blocked_channels", updated_blocked))
+        CubDB.put(db, {:user, normalized_id}, Map.put(user, :blocked_channels, updated_blocked))
 
         Exolyte.ChannelDB.remove_user(channel_id, normalized_id)
 
@@ -91,10 +93,10 @@ defmodule Exolyte.UserDB do
         {:error, :not_found}
 
       user ->
-        blocked = Map.get(user, "blocked_channels", MapSet.new())
+        blocked = Map.get(user, :blocked_channels, MapSet.new())
         updated_blocked = MapSet.delete(blocked, channel_id)
 
-        CubDB.put(db, {:user, normalized_id}, Map.put(user, "blocked_channels", updated_blocked))
+        CubDB.put(db, {:user, normalized_id}, Map.put(user, :blocked_channels, updated_blocked))
 
         {:ok, updated_blocked}
     end

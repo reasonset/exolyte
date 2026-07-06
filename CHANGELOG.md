@@ -2,6 +2,12 @@
 
 # version 1
 
+## v1.2.0 (2026-07-06)
+
+* Add play sound setting (user, default true)
+* Add notify all DMs setting (user, default true)
+* Update Banner Logo
+
 ## v1.1.0 (2026-07-05)
 
 * Update package

@@ -4,6 +4,7 @@ defmodule ExolyteWeb.ChannelLive do
   def mount(%{"channel_id" => channel_id}, session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Exolyte.PubSub, "channel:#{channel_id}")
+      Registry.register(Exolyte.ChannelViewerRegistry, channel_id, session["user_id"])
       send(self(), "load_latest")
     end
 
@@ -13,20 +14,21 @@ defmodule ExolyteWeb.ChannelLive do
       settings = Exolyte.Settings.get()
       is_dm = String.starts_with?(channel_id, "dm:")
 
-      channel_name = if (is_dm)
+      {channel_name, dm_partner_id} = if (is_dm)
       do
         "dm:" <> rest = channel_id
         [u1, u2] = String.split(rest, ":")
         other_user_id = if u1 == socket.assigns.current_user.id, do: u2, else: u1
-        "DM for @#{other_user_id}"
+        {"DM for @#{other_user_id}", other_user_id}
       else
-        channel_info.name
+        {channel_info.name, nil}
       end
 
       {:ok,
        ssocket
        |> assign(:channel_id, channel_id)
        |> assign(:channel_name, channel_name)
+       |> assign(:dm_partner_id, dm_partner_id)
        |> stream(:messages, [], dom_id: fn msg -> "msg-#{msg["timestamp"]}-#{msg["user_id"]}" end)
        |> assign(:oldest_index, nil)
        |> assign(:has_more, false)
@@ -242,7 +244,12 @@ defmodule ExolyteWeb.ChannelLive do
     if message["user_id"] == socket.assigns.user_id do
       {:noreply, socket}
     else
-      socket = push_event(socket, "sound_receive", %{})
+      socket =
+        if Map.get(socket.assigns.current_user, :play_sound, true) do
+          push_event(socket, "sound_receive", %{})
+        else
+          socket
+        end
       {:noreply, stream_insert(socket, :messages, message)}
     end
   end
@@ -252,7 +259,12 @@ defmodule ExolyteWeb.ChannelLive do
     if sender_session_id == socket.assigns.session_id do
       {:noreply, socket}
     else
-      socket = push_event(socket, "sound_receive", %{})
+      socket =
+        if Map.get(socket.assigns.current_user, :play_sound, true) do
+          push_event(socket, "sound_receive", %{})
+        else
+          socket
+        end
       {:noreply, stream_insert(socket, :messages, message)}
     end
   end
@@ -304,13 +316,36 @@ defmodule ExolyteWeb.ChannelLive do
       Exolyte.Notification.channel_update(socket.assigns.channel_id, message["timestamp"])
 
       mentions = parse_mentions(String.trim(content)) |> Enum.uniq()
+      
       for user <- mentions do
         if MapSet.member?(socket.assigns.channel_info.users, user) do
-          Exolyte.Notification.mention(user, socket.assigns.channel_id, String.trim(content))
+          viewers = Registry.lookup(Exolyte.ChannelViewerRegistry, socket.assigns.channel_id)
+          is_viewing? = Enum.any?(viewers, fn {_pid, viewer_user_id} -> viewer_user_id == user end)
+
+          if not is_viewing? do
+            Exolyte.Notification.mention(user, socket.assigns.channel_id, String.trim(content))
+          end
         end
       end
 
-      socket = push_event(socket, "sound_sent", %{})
+      if socket.assigns.is_dm and socket.assigns.dm_partner_id do
+        dm_partner = socket.assigns.dm_partner_id
+        if dm_partner not in mentions do
+          viewers = Registry.lookup(Exolyte.ChannelViewerRegistry, socket.assigns.channel_id)
+          is_viewing? = Enum.any?(viewers, fn {_pid, viewer_user_id} -> viewer_user_id == dm_partner end)
+
+          if not is_viewing? do
+            Exolyte.Notification.dm(dm_partner, socket.assigns.channel_id, String.trim(content))
+          end
+        end
+      end
+
+      socket =
+        if Map.get(socket.assigns.current_user, :play_sound, true) do
+          push_event(socket, "sound_sent", %{})
+        else
+          socket
+        end
       {:noreply, stream_insert(socket, :messages, message)}
     end
   end
@@ -364,7 +399,7 @@ defmodule ExolyteWeb.ChannelLive do
           {:noreply, assign(socket, search_error: gettext("User not found."))}
 
         user ->
-          blocked = Map.get(user, "blocked_channels", MapSet.new())
+          blocked = Map.get(user, :blocked_channels, MapSet.new())
           chop_id = socket.assigns.channel_info.chop
 
           blocked_chop_dm =

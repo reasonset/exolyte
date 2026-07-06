@@ -39,6 +39,10 @@ defmodule Exolyte.Notification do
     GenServer.cast(Exolyte.NotificationServer, {:mention, user_id, channel_id, content})
   end
 
+  def dm(user_id, channel_id, content) do
+    GenServer.cast(Exolyte.NotificationServer, {:dm, user_id, channel_id, content})
+  end
+
   def invitation(user_id, channel_id) do
     GenServer.cast(Exolyte.NotificationServer, {:invitation, user_id, channel_id})
   end
