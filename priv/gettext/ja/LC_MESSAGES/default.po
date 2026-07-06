@@ -163,7 +163,7 @@ msgstr "ダイレクトメッセージ"
 #: lib/exolyte_web/live/user_live/show.ex:238
 #, elixir-autogen, elixir-format
 msgid "Display Name"
-msgstr ""
+msgstr "表示名"
 
 #: lib/exolyte_web/live/user_live/show.ex:125
 #, elixir-autogen, elixir-format
@@ -395,3 +395,8 @@ msgstr "UnifiedPushエンドポイントURL"
 #, elixir-autogen, elixir-format
 msgid "Unread"
 msgstr "未読"
+
+#: lib/exolyte_web/live/user_live/show.ex:267
+#, elixir-autogen, elixir-format
+msgid "Generate a one-time link for a user to register their account. The link expires in 24 hours."
+msgstr "使い切りの招待リンクを生成します。リンクは24時間有効です。"

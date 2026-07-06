@@ -395,3 +395,8 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Unread"
 msgstr ""
+
+#: lib/exolyte_web/live/user_live/show.ex:267
+#, elixir-autogen, elixir-format
+msgid "Generate a one-time link for a user to register their account. The link expires in 24 hours."
+msgstr ""

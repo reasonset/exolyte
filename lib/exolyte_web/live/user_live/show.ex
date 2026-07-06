@@ -264,7 +264,7 @@ defmodule ExolyteWeb.UserLive.Show do
         <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4 mt-4">
           <legend class="fieldset-legend"><%= gettext("Invite User") %></legend>
           <div class="text-sm text-base-content/70 mb-4">
-            Generate a one-time link for a user to register their account. The link expires in 24 hours.
+            <%= gettext("Generate a one-time link for a user to register their account. The link expires in 24 hours.") %>
           </div>
           <button class="btn btn-primary w-full" phx-click="generate_link">Generate Link</button>
           
