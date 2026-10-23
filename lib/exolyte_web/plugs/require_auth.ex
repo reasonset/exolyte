@@ -27,7 +27,6 @@ defmodule ExolyteWeb.Plugs.RequireAuth do
           |> assign(:current_user, user)
           |> assign(:user_theme, user_theme)
         end
-
     end
   end
 end

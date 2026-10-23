@@ -43,6 +43,7 @@ defmodule Exolyte.ChannelDB do
 
   def delete_channel(id) do
     db = Exolyte.DB.get_db()
+
     try do
       Exolyte.ChannelLog.delete_log_dir(id)
       CubDB.delete(db, {:channel, id})

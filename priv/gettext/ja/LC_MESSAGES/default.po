@@ -107,7 +107,7 @@ msgstr "このチャンネルをブロックします"
 msgid "Are you sure you want to leave this channel?"
 msgstr "このチャンネルから脱退します"
 
-#: lib/exolyte_web/live/user_live/show.ex:308
+#: lib/exolyte_web/live/user_live/show.ex:313
 #, elixir-autogen, elixir-format
 msgid "Are you sure you want to unblock %{channel}?"
 msgstr "%{channel}のブロックを解除していいですか?"
@@ -131,17 +131,17 @@ msgstr "ブロックしたチャンネル"
 #: lib/exolyte_web/live/channel_live/channel_live.ex:140
 #: lib/exolyte_web/live/channel_live/channel_live.ex:154
 #: lib/exolyte_web/live/channel_live/channel_live.ex:218
-#: lib/exolyte_web/live/user_live/show.ex:310
+#: lib/exolyte_web/live/user_live/show.ex:315
 #, elixir-autogen, elixir-format
 msgid "Cancel"
 msgstr "キャンセル"
 
-#: lib/exolyte_web/live/user_live/show.ex:367
+#: lib/exolyte_web/live/user_live/show.ex:373
 #, elixir-autogen, elixir-format
 msgid "Cannot add yourself."
 msgstr "自分を追加することはできません"
 
-#: lib/exolyte_web/live/channel_live/channel_live.ex:356
+#: lib/exolyte_web/live/channel_live/channel_live.ex:371
 #, elixir-autogen, elixir-format
 msgid "Cannot invite yourself."
 msgstr "自分を招待するとはできません"
@@ -170,12 +170,12 @@ msgstr "表示名"
 msgid "Enter User ID to search"
 msgstr "検索するユーザーID"
 
-#: lib/exolyte_web/live/user_live/show.ex:413
+#: lib/exolyte_web/live/user_live/show.ex:419
 #, elixir-autogen, elixir-format
 msgid "Failed to add friend: %{reason}"
 msgstr "フレンドに追加できません: %{reason}"
 
-#: lib/exolyte_web/live/channel_live/channel_live.ex:424
+#: lib/exolyte_web/live/channel_live/channel_live.ex:439
 #, elixir-autogen, elixir-format
 msgid "Failed to invite user: %{reason}"
 msgstr "招待できません: %{reason}"
@@ -186,7 +186,7 @@ msgid "Invite"
 msgstr "招待"
 
 #: lib/exolyte_web/live/channel_live/channel_live.ex:102
-#: lib/exolyte_web/live/user_live/show.ex:265
+#: lib/exolyte_web/live/user_live/show.ex:270
 #, elixir-autogen, elixir-format
 msgid "Invite User"
 msgstr "ユーザーを招待"
@@ -214,34 +214,34 @@ msgid "Search"
 msgstr "検索"
 
 #: lib/exolyte_web/live/user_live/show.ex:216
-#: lib/exolyte_web/live/user_live/show.ex:311
+#: lib/exolyte_web/live/user_live/show.ex:316
 #, elixir-autogen, elixir-format
 msgid "Unblock"
 msgstr "ブロック解除"
 
-#: lib/exolyte_web/live/user_live/show.ex:307
+#: lib/exolyte_web/live/user_live/show.ex:312
 #, elixir-autogen, elixir-format
 msgid "Unblock Channel"
 msgstr "ブロック解除"
 
-#: lib/exolyte_web/live/channel_live/channel_live.ex:400
+#: lib/exolyte_web/live/channel_live/channel_live.ex:415
 #, elixir-autogen, elixir-format
 msgid "User has blocked this channel."
 msgstr "ユーザーはチャンネルをブロックしています"
 
-#: lib/exolyte_web/live/channel_live/channel_live.ex:368
+#: lib/exolyte_web/live/channel_live/channel_live.ex:383
 #, elixir-autogen, elixir-format
 msgid "User is already in the channel."
 msgstr "ユーザーは既にチャンネルにいます"
 
-#: lib/exolyte_web/live/channel_live/channel_live.ex:418
+#: lib/exolyte_web/live/channel_live/channel_live.ex:433
 #, elixir-autogen, elixir-format
 msgid "User is banned from this channel."
 msgstr "ユーザーはBANされています"
 
-#: lib/exolyte_web/live/channel_live/channel_live.ex:361
-#: lib/exolyte_web/live/channel_live/channel_live.ex:384
-#: lib/exolyte_web/live/user_live/show.ex:371
+#: lib/exolyte_web/live/channel_live/channel_live.ex:376
+#: lib/exolyte_web/live/channel_live/channel_live.ex:399
+#: lib/exolyte_web/live/user_live/show.ex:377
 #, elixir-autogen, elixir-format
 msgid "User not found."
 msgstr "ユーザーが見つかりません"
@@ -261,13 +261,13 @@ msgstr "%{user}のブロックを解除していいですか?"
 msgid "Channel Description"
 msgstr "チャンネルの説明"
 
-#: lib/exolyte_web/live/user_live/show.ex:289
+#: lib/exolyte_web/live/user_live/show.ex:294
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Channel ID"
 msgstr "チャンネルID"
 
 #: lib/exolyte_web/live/channel_live/channel_live.ex:171
-#: lib/exolyte_web/live/user_live/show.ex:293
+#: lib/exolyte_web/live/user_live/show.ex:298
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Channel Name"
 msgstr "チャンネル名"
@@ -278,17 +278,17 @@ msgstr "チャンネル名"
 msgid "Channel Settings"
 msgstr "チャンネル設定"
 
-#: lib/exolyte_web/live/user_live/show.ex:470
+#: lib/exolyte_web/live/user_live/show.ex:476
 #, elixir-autogen, elixir-format
 msgid "Channel already exists."
 msgstr "チャンネルが既に存在します"
 
-#: lib/exolyte_web/live/user_live/show.ex:299
+#: lib/exolyte_web/live/user_live/show.ex:304
 #, elixir-autogen, elixir-format
 msgid "Create"
 msgstr "作成"
 
-#: lib/exolyte_web/live/user_live/show.ex:286
+#: lib/exolyte_web/live/user_live/show.ex:291
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Create Channel"
 msgstr "チャンネルを作成"
@@ -298,12 +298,12 @@ msgstr "チャンネルを作成"
 msgid "Describe the purpose of this channel..."
 msgstr "チャンネルの目的を記載……"
 
-#: lib/exolyte_web/live/user_live/show.ex:467
+#: lib/exolyte_web/live/user_live/show.ex:473
 #, elixir-autogen, elixir-format
 msgid "Failed to create channel."
 msgstr "チャンネルの作成に失敗しました"
 
-#: lib/exolyte_web/live/user_live/show.ex:473
+#: lib/exolyte_web/live/user_live/show.ex:479
 #, elixir-autogen, elixir-format
 msgid "Invalid channel ID format."
 msgstr "無効なチャンネルIDです"
@@ -320,7 +320,7 @@ msgstr ""
 msgid "Kick User"
 msgstr "ユーザーをkick"
 
-#: lib/exolyte_web/live/user_live/show.ex:318
+#: lib/exolyte_web/live/user_live/show.ex:323
 #, elixir-autogen, elixir-format
 msgid "Logout"
 msgstr "ログアウト"
@@ -335,7 +335,7 @@ msgstr "最大140文字"
 msgid "Save Settings"
 msgstr ""
 
-#: lib/exolyte_web/live/channel_live/channel_live.ex:403
+#: lib/exolyte_web/live/channel_live/channel_live.ex:418
 #, elixir-autogen, elixir-format, fuzzy
 msgid "User has blocked the channel operator."
 msgstr "ユーザーはチャンネルをブロックしています"
@@ -345,7 +345,7 @@ msgstr "ユーザーはチャンネルをブロックしています"
 msgid "Clear All"
 msgstr "クリア"
 
-#: lib/exolyte_web/live/user_live/show.ex:258
+#: lib/exolyte_web/live/user_live/show.ex:263
 #, elixir-autogen, elixir-format
 msgid "Enable WebPush Notifications"
 msgstr "プッシュ通知を有効にする"
@@ -380,12 +380,12 @@ msgstr "通知"
 msgid "Notify all DMs"
 msgstr "すべてのDMを通知"
 
-#: lib/exolyte_web/live/user_live/show.ex:252
+#: lib/exolyte_web/live/user_live/show.ex:257
 #, elixir-autogen, elixir-format
 msgid "Save UnifiedPush Endpoint"
 msgstr "エンドポイントを保存"
 
-#: lib/exolyte_web/live/user_live/show.ex:250
+#: lib/exolyte_web/live/user_live/show.ex:255
 #, elixir-autogen, elixir-format
 msgid "UnifiedPush Endpoint URL"
 msgstr "UnifiedPushエンドポイントURL"
@@ -396,7 +396,12 @@ msgstr "UnifiedPushエンドポイントURL"
 msgid "Unread"
 msgstr "未読"
 
-#: lib/exolyte_web/live/user_live/show.ex:267
+#: lib/exolyte_web/live/user_live/show.ex:272
 #, elixir-autogen, elixir-format
 msgid "Generate a one-time link for a user to register their account. The link expires in 24 hours."
 msgstr "使い切りの招待リンクを生成します。リンクは24時間有効です。"
+
+#: lib/exolyte_web/live/user_live/show.ex:245
+#, elixir-autogen, elixir-format
+msgid "Play Sound"
+msgstr "音を鳴らす"

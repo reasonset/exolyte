@@ -38,10 +38,12 @@ defmodule Exolyte.Settings do
         case Jason.decode(content) do
           {:ok, decoded} ->
             Map.merge(@default_settings, decoded)
+
           {:error, _} ->
             Logger.warning("Failed to decode settings.json, using defaults.")
             @default_settings
         end
+
       {:error, _} ->
         Logger.info("settings.json not found, initializing with default settings.")
         save_settings(@default_settings)
@@ -55,6 +57,7 @@ defmodule Exolyte.Settings do
         # Ensure priv directory exists
         File.mkdir_p!(Path.dirname(@settings_file))
         File.write!(@settings_file, json)
+
       {:error, reason} ->
         Logger.error("Failed to encode settings: #{inspect(reason)}")
     end
@@ -65,7 +68,8 @@ defmodule Exolyte.Settings do
     case Map.get(map, key) do
       "true" -> Map.put(map, key, true)
       "false" -> Map.put(map, key, false)
-      _ -> map # If it's already a boolean or nil, keep it
+      # If it's already a boolean or nil, keep it
+      _ -> map
     end
   end
 end

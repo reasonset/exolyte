@@ -21,16 +21,15 @@ defmodule ExolyteWeb.RegisterController do
         user_id = Map.get(user_params, "user_id", "")
         password = Map.get(user_params, "password", "")
         display_name = Map.get(user_params, "display_name", "") |> String.trim()
-        
+
         display_name = if display_name == "", do: user_id, else: display_name
 
         with :ok <- validate_user_id(user_id),
              :ok <- validate_password(password),
              :ok <- check_user_exists(user_id) do
-          
           # Create the user
           Exolyte.UserDB.put_user(user_id, display_name, password)
-          
+
           # Invalidate the link
           Exolyte.UserDB.delete_user_link(link_uuid)
 
@@ -55,7 +54,8 @@ defmodule ExolyteWeb.RegisterController do
     if Regex.match?(~r/^[a-z][a-z0-9_]{1,18}[a-z0-9]$/, user_id) do
       :ok
     else
-      {:error, "User ID must be 3-20 characters long, start with a lowercase letter, end with a lowercase letter or number, and contain only lowercase letters, numbers, and underscores."}
+      {:error,
+       "User ID must be 3-20 characters long, start with a lowercase letter, end with a lowercase letter or number, and contain only lowercase letters, numbers, and underscores."}
     end
   end
 

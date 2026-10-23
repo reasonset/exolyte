@@ -14,15 +14,15 @@ defmodule ExolyteWeb.ChannelLive do
       settings = Exolyte.Settings.get()
       is_dm = String.starts_with?(channel_id, "dm:")
 
-      {channel_name, dm_partner_id} = if (is_dm)
-      do
-        "dm:" <> rest = channel_id
-        [u1, u2] = String.split(rest, ":")
-        other_user_id = if u1 == socket.assigns.current_user.id, do: u2, else: u1
-        {"DM for @#{other_user_id}", other_user_id}
-      else
-        {channel_info.name, nil}
-      end
+      {channel_name, dm_partner_id} =
+        if is_dm do
+          "dm:" <> rest = channel_id
+          [u1, u2] = String.split(rest, ":")
+          other_user_id = if u1 == socket.assigns.current_user.id, do: u2, else: u1
+          {"DM for @#{other_user_id}", other_user_id}
+        else
+          {channel_info.name, nil}
+        end
 
       {:ok,
        ssocket
@@ -36,8 +36,10 @@ defmodule ExolyteWeb.ChannelLive do
        |> assign(:search_error, nil)
        |> assign(:kick_target, nil)
        |> assign(:is_dm, is_dm)
-       |> assign(:page_title, "#{channel_name} - #{ Map.get(settings, "instance_name") || "Exolyte"}")}
-
+       |> assign(
+         :page_title,
+         "#{channel_name} - #{Map.get(settings, "instance_name") || "Exolyte"}"
+       )}
     else
       _ -> {:ok, push_navigate(socket, to: ~p"/not_found")}
     end
@@ -231,7 +233,11 @@ defmodule ExolyteWeb.ChannelLive do
     {:ok, raw} = File.read(path)
     log = Jason.decode!(raw)
 
-    Exolyte.Notification.message_received(socket.assigns.user_id, socket.assigns.channel_id, System.os_time(:second))
+    Exolyte.Notification.message_received(
+      socket.assigns.user_id,
+      socket.assigns.channel_id,
+      System.os_time(:second)
+    )
 
     {:noreply,
      socket
@@ -250,12 +256,18 @@ defmodule ExolyteWeb.ChannelLive do
         else
           socket
         end
+
       {:noreply, stream_insert(socket, :messages, message)}
     end
   end
 
   def handle_info({:new_message, message, sender_session_id}, socket) do
-    Exolyte.Notification.message_received(socket.assigns.user_id, socket.assigns.channel_id, message["timestamp"])
+    Exolyte.Notification.message_received(
+      socket.assigns.user_id,
+      socket.assigns.channel_id,
+      message["timestamp"]
+    )
+
     if sender_session_id == socket.assigns.session_id do
       {:noreply, socket}
     else
@@ -265,6 +277,7 @@ defmodule ExolyteWeb.ChannelLive do
         else
           socket
         end
+
       {:noreply, stream_insert(socket, :messages, message)}
     end
   end
@@ -316,11 +329,13 @@ defmodule ExolyteWeb.ChannelLive do
       Exolyte.Notification.channel_update(socket.assigns.channel_id, message["timestamp"])
 
       mentions = parse_mentions(String.trim(content)) |> Enum.uniq()
-      
+
       for user <- mentions do
         if MapSet.member?(socket.assigns.channel_info.users, user) do
           viewers = Registry.lookup(Exolyte.ChannelViewerRegistry, socket.assigns.channel_id)
-          is_viewing? = Enum.any?(viewers, fn {_pid, viewer_user_id} -> viewer_user_id == user end)
+
+          is_viewing? =
+            Enum.any?(viewers, fn {_pid, viewer_user_id} -> viewer_user_id == user end)
 
           if not is_viewing? do
             Exolyte.Notification.mention(user, socket.assigns.channel_id, String.trim(content))
@@ -330,9 +345,12 @@ defmodule ExolyteWeb.ChannelLive do
 
       if socket.assigns.is_dm and socket.assigns.dm_partner_id do
         dm_partner = socket.assigns.dm_partner_id
+
         if dm_partner not in mentions do
           viewers = Registry.lookup(Exolyte.ChannelViewerRegistry, socket.assigns.channel_id)
-          is_viewing? = Enum.any?(viewers, fn {_pid, viewer_user_id} -> viewer_user_id == dm_partner end)
+
+          is_viewing? =
+            Enum.any?(viewers, fn {_pid, viewer_user_id} -> viewer_user_id == dm_partner end)
 
           if not is_viewing? do
             Exolyte.Notification.dm(dm_partner, socket.assigns.channel_id, String.trim(content))
@@ -346,6 +364,7 @@ defmodule ExolyteWeb.ChannelLive do
         else
           socket
         end
+
       {:noreply, stream_insert(socket, :messages, message)}
     end
   end
@@ -415,13 +434,14 @@ defmodule ExolyteWeb.ChannelLive do
               {:noreply, assign(socket, search_error: gettext("User has blocked this channel."))}
 
             blocked_chop_dm ->
-              {:noreply, assign(socket, search_error: gettext("User has blocked the channel operator."))}
+              {:noreply,
+               assign(socket, search_error: gettext("User has blocked the channel operator."))}
 
             true ->
               case Exolyte.ChannelDB.add_user(socket.assigns.channel_id, target_id) do
                 {:ok, updated_channel} ->
                   Exolyte.Notification.invitation(target_id, socket.assigns.channel_id)
-                  
+
                   {:noreply,
                    socket
                    |> set_channel_info(updated_channel)
@@ -444,14 +464,22 @@ defmodule ExolyteWeb.ChannelLive do
     end
   end
 
-  def handle_event("update_settings", %{"description" => description, "channel_name" => channel_name}, socket) do
+  def handle_event(
+        "update_settings",
+        %{"description" => description, "channel_name" => channel_name},
+        socket
+      ) do
     if socket.assigns.current_user.id == socket.assigns.channel_info.chop do
       safe_desc = String.slice(description, 0, 140)
       safe_name = String.slice(channel_name, 0, 32)
-      
-      Exolyte.ChannelDB.update_channel(socket.assigns.channel_id, %{description: safe_desc, name: safe_name})
+
+      Exolyte.ChannelDB.update_channel(socket.assigns.channel_id, %{
+        description: safe_desc,
+        name: safe_name
+      })
+
       updated_channel = Exolyte.ChannelDB.get_channel(socket.assigns.channel_id)
-      
+
       {:noreply, set_channel_info(updated_channel, socket)}
     else
       {:noreply, socket}
@@ -476,10 +504,11 @@ defmodule ExolyteWeb.ChannelLive do
     if target_id && socket.assigns.current_user.id == socket.assigns.channel_info.chop do
       case Exolyte.ChannelDB.ban_user(socket.assigns.channel_id, target_id) do
         {:ok, updated_channel} ->
-          {:noreply, 
+          {:noreply,
            socket
            |> set_channel_info(updated_channel)
            |> assign(:kick_target, nil)}
+
         _ ->
           {:noreply, assign(socket, kick_target: nil)}
       end
@@ -504,9 +533,14 @@ defmodule ExolyteWeb.ChannelLive do
         extension: [table: true, tasklist: true, strikethrough: true, autolink: true]
       )
 
-    message_styled = Enum.reduce(mentions, message_marked, fn user, acc ->
-      String.replace(acc, ~r/(^|\s|>)(@#{user})($|\s|<)/, "\\1<span class=\"bg-base-100 text-base-content font-bold px-1 rounded shadow-sm\">\\2</span>\\3")
-    end)
+    message_styled =
+      Enum.reduce(mentions, message_marked, fn user, acc ->
+        String.replace(
+          acc,
+          ~r/(^|\s|>)(@#{user})($|\s|<)/,
+          "\\1<span class=\"bg-base-100 text-base-content font-bold px-1 rounded shadow-sm\">\\2</span>\\3"
+        )
+      end)
 
     Map.put(message, "content", message_styled)
   end
@@ -523,9 +557,11 @@ defmodule ExolyteWeb.ChannelLive do
           {:halt, acc}
         else
           tokens = String.split(line)
-          {mentions, rest} = Enum.split_while(tokens, fn token ->
-            Regex.match?(~r/^@[a-zA-Z0-9_]+$/, token)
-          end)
+
+          {mentions, rest} =
+            Enum.split_while(tokens, fn token ->
+              Regex.match?(~r/^@[a-zA-Z0-9_]+$/, token)
+            end)
 
           extracted = Enum.map(mentions, fn "@" <> user -> user end)
 

@@ -3,25 +3,29 @@ defmodule ExolyteWeb.ConsoleLive do
   alias Exolyte.PublickeyAuth
 
   def mount(_params, _session, socket) do
-    users = Exolyte.UserDB.list_users() |> Enum.map(fn {_key, user} -> user end) |> Enum.sort_by(& &1.id)
+    users =
+      Exolyte.UserDB.list_users()
+      |> Enum.map(fn {_key, user} -> user end)
+      |> Enum.sort_by(& &1.id)
 
-    {:ok, assign(socket, 
-      auth_state: :pending, 
-      public_key: nil, 
-      active_tab: "dashboard",
-      users: users,
-      selected_user_id: nil,
-      selected_user: nil,
-      user_channels: [],
-      generated_reset_link: nil,
-      search_query: "",
-      settings: Exolyte.Settings.get(),
-      settings_saved: false,
-      channels: [],
-      selected_channel_id: nil,
-      selected_channel: nil,
-      channel_update_msg: nil
-    )}
+    {:ok,
+     assign(socket,
+       auth_state: :pending,
+       public_key: nil,
+       active_tab: "dashboard",
+       users: users,
+       selected_user_id: nil,
+       selected_user: nil,
+       user_channels: [],
+       generated_reset_link: nil,
+       search_query: "",
+       settings: Exolyte.Settings.get(),
+       settings_saved: false,
+       channels: [],
+       selected_channel_id: nil,
+       selected_channel: nil,
+       channel_update_msg: nil
+     )}
   end
 
   def render(assigns) do
@@ -409,17 +413,28 @@ defmodule ExolyteWeb.ConsoleLive do
   end
 
   def handle_event("change_tab", %{"tab" => tab}, socket) do
-    socket = assign(socket, active_tab: tab, generated_link: nil, generated_qr: nil, search_query: "", settings_saved: false, channel_update_msg: nil)
-    
-    socket = if tab == "channels" do
-      channels = Exolyte.ChannelDB.list_channels()
-                 |> Enum.map(fn {_, c} -> c end)
-                 |> Enum.filter(fn c -> not String.starts_with?(c.id, "dm:") end)
-                 |> Enum.sort_by(& &1.id)
-      assign(socket, channels: channels)
-    else
-      socket
-    end
+    socket =
+      assign(socket,
+        active_tab: tab,
+        generated_link: nil,
+        generated_qr: nil,
+        search_query: "",
+        settings_saved: false,
+        channel_update_msg: nil
+      )
+
+    socket =
+      if tab == "channels" do
+        channels =
+          Exolyte.ChannelDB.list_channels()
+          |> Enum.map(fn {_, c} -> c end)
+          |> Enum.filter(fn c -> not String.starts_with?(c.id, "dm:") end)
+          |> Enum.sort_by(& &1.id)
+
+        assign(socket, channels: channels)
+      else
+        socket
+      end
 
     {:noreply, socket}
   end
@@ -431,9 +446,9 @@ defmodule ExolyteWeb.ConsoleLive do
       "allow_user_invites" => Map.get(params, "allow_user_invites", "false") == "true",
       "allow_channel_creation" => Map.get(params, "allow_channel_creation", "false") == "true"
     }
-    
+
     updated_settings = Exolyte.Settings.update(settings_to_save)
-    
+
     {:noreply, assign(socket, settings: updated_settings, settings_saved: true)}
   end
 
@@ -447,33 +462,43 @@ defmodule ExolyteWeb.ConsoleLive do
 
   def handle_event("select_channel", %{"id" => id}, socket) do
     channel = Exolyte.ChannelDB.get_channel(id)
-    {:noreply, assign(socket, selected_channel_id: id, selected_channel: channel, channel_update_msg: nil)}
+
+    {:noreply,
+     assign(socket, selected_channel_id: id, selected_channel: channel, channel_update_msg: nil)}
   end
 
-  def handle_event("update_channel_settings", %{"chop" => chop_input, "description" => desc, "name" => name}, socket) do
+  def handle_event(
+        "update_channel_settings",
+        %{"chop" => chop_input, "description" => desc, "name" => name},
+        socket
+      ) do
     channel_id = socket.assigns.selected_channel_id
+
     if channel_id do
       chop_val = if String.trim(chop_input) == "", do: nil, else: String.trim(chop_input)
       desc_val = String.trim(desc)
       name_val = String.trim(name)
-      
+
       Exolyte.ChannelDB.update_channel(channel_id, %{description: desc_val, name: name_val})
+
       if chop_val != socket.assigns.selected_channel.chop do
         Exolyte.ChannelDB.set_chop(channel_id, chop_val)
       end
-      
+
       updated_channel = Exolyte.ChannelDB.get_channel(channel_id)
-      
-      channels = Exolyte.ChannelDB.list_channels()
-                 |> Enum.map(fn {_, c} -> c end)
-                 |> Enum.filter(fn c -> not String.starts_with?(c.id, "dm:") end)
-                 |> Enum.sort_by(& &1.id)
-      
-      {:noreply, assign(socket, 
-        selected_channel: updated_channel, 
-        channels: channels,
-        channel_update_msg: "Channel settings saved successfully."
-      )}
+
+      channels =
+        Exolyte.ChannelDB.list_channels()
+        |> Enum.map(fn {_, c} -> c end)
+        |> Enum.filter(fn c -> not String.starts_with?(c.id, "dm:") end)
+        |> Enum.sort_by(& &1.id)
+
+      {:noreply,
+       assign(socket,
+         selected_channel: updated_channel,
+         channels: channels,
+         channel_update_msg: "Channel settings saved successfully."
+       )}
     else
       {:noreply, socket}
     end
@@ -483,8 +508,8 @@ defmodule ExolyteWeb.ConsoleLive do
     uuid = Exolyte.UserDB.create_user_link()
     host = ExolyteWeb.Endpoint.url()
     link = "#{host}/register/#{uuid}"
-    
-    qr_svg = 
+
+    qr_svg =
       link
       |> EQRCode.encode()
       |> EQRCode.svg(width: 250)
@@ -495,34 +520,46 @@ defmodule ExolyteWeb.ConsoleLive do
   def handle_event("select_user", %{"id" => id}, socket) do
     user = Exolyte.UserDB.get_user(id)
     channels = Exolyte.ChannelDB.channels_for_user(id)
-    
-    {:noreply, assign(socket, 
-      selected_user_id: id,
-      selected_user: user,
-      user_channels: channels,
-      generated_reset_link: nil
-    )}
+
+    {:noreply,
+     assign(socket,
+       selected_user_id: id,
+       selected_user: user,
+       user_channels: channels,
+       generated_reset_link: nil
+     )}
   end
 
-  def handle_event("create_user", %{"user_id" => user_id, "display_name" => display_name, "password" => password}, socket) do
+  def handle_event(
+        "create_user",
+        %{"user_id" => user_id, "display_name" => display_name, "password" => password},
+        socket
+      ) do
     display_name = if String.trim(display_name) == "", do: user_id, else: display_name
     Exolyte.UserDB.put_user(user_id, display_name, password)
-    
-    users = Exolyte.UserDB.list_users() |> Enum.map(fn {_key, user} -> user end) |> Enum.sort_by(& &1.id)
+
+    users =
+      Exolyte.UserDB.list_users()
+      |> Enum.map(fn {_key, user} -> user end)
+      |> Enum.sort_by(& &1.id)
+
     {:noreply, assign(socket, users: users)}
   end
 
   def handle_event("toggle_freeze", _params, socket) do
     user_id = socket.assigns.selected_user_id
+
     if user_id do
       user = Exolyte.UserDB.get_user(user_id)
       frozen = Map.get(user, :frozen, false)
       Exolyte.UserDB.update_user(user_id, %{frozen: !frozen})
-      
+
       # Refresh data
       updated_user = Exolyte.UserDB.get_user(user_id)
-      users = Exolyte.UserDB.list_users() |> Enum.map(fn {_key, u} -> u end) |> Enum.sort_by(& &1.id)
-      
+
+      users =
+        Exolyte.UserDB.list_users() |> Enum.map(fn {_key, u} -> u end) |> Enum.sort_by(& &1.id)
+
       {:noreply, assign(socket, selected_user: updated_user, users: users)}
     else
       {:noreply, socket}
@@ -531,6 +568,7 @@ defmodule ExolyteWeb.ConsoleLive do
 
   def handle_event("generate_reset_link", _params, socket) do
     user_id = socket.assigns.selected_user_id
+
     if user_id do
       uuid = Exolyte.UserDB.create_reset_link(user_id)
       host = ExolyteWeb.Endpoint.url()
@@ -543,6 +581,7 @@ defmodule ExolyteWeb.ConsoleLive do
 
   def handle_event("remove_from_channel", %{"channel_id" => channel_id}, socket) do
     user_id = socket.assigns.selected_user_id
+
     if user_id do
       Exolyte.ChannelDB.remove_user(channel_id, user_id)
       channels = Exolyte.ChannelDB.channels_for_user(user_id)
@@ -557,12 +596,18 @@ defmodule ExolyteWeb.ConsoleLive do
     {:noreply, push_event(socket, "challenge", %{challenge_id: cuuid, secret: cvalue})}
   end
 
-  def handle_event("verify_challenge", %{"signature" => signature, "challenge_id" => challenge_id, "public_key" => public_key}, socket) do
+  def handle_event(
+        "verify_challenge",
+        %{"signature" => signature, "challenge_id" => challenge_id, "public_key" => public_key},
+        socket
+      ) do
     if PublickeyAuth.verify(public_key, signature, challenge_id) do
       db = Exolyte.DB.get_db()
+
       case CubDB.get(db, {:adminkey, public_key}) do
         nil ->
           {:noreply, assign(socket, auth_state: :unauthorized, public_key: public_key)}
+
         _name ->
           {:noreply, assign(socket, auth_state: :authenticated)}
       end

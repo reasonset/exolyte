@@ -3,7 +3,7 @@ defmodule Exolyte.PublickeyAuth do
 
   def add_key(key, name) do
     db = Exolyte.DB.get_db()
-    
+
     CubDB.put(db, {:adminkey, key}, name)
   end
 
@@ -18,10 +18,12 @@ defmodule Exolyte.PublickeyAuth do
     signature = Base.decode64!(signature_base64)
 
     case get_challenge(challenge_id) do
-      {:ok, message} -> 
-        {:SubjectPublicKeyInfo, _algo, key_bitstring} = :public_key.der_decode(:SubjectPublicKeyInfo, pub_key_der)
+      {:ok, message} ->
+        {:SubjectPublicKeyInfo, _algo, key_bitstring} =
+          :public_key.der_decode(:SubjectPublicKeyInfo, pub_key_der)
+
         is_valid = :crypto.verify(:eddsa, :none, message, signature, [key_bitstring, :ed25519])
-    
+
         is_valid
 
       _ ->
@@ -34,7 +36,7 @@ defmodule Exolyte.PublickeyAuth do
     cvalue = UUID.uuid4()
     path = Path.join([@admin_authsession_db, "#{cuuid}.json"])
     expire = System.os_time(:second) + 60 * 60 * 24
-    
+
     data = %{
       value: cvalue,
       expire_at: expire
