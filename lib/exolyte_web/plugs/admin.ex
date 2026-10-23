@@ -6,7 +6,13 @@ defmodule ExolyteWeb.Plugs.Admin do
   def call(conn, _opts) do
     admin_token = Application.get_env(:exolyte, :admin)[:token]
     recv_token = List.first(get_req_header(conn, "x-admin-token"))
-    if admin_token == recv_token do
+
+    valid? =
+      is_binary(admin_token) and admin_token != "" and
+        is_binary(recv_token) and
+        Plug.Crypto.secure_compare(admin_token, recv_token)
+
+    if valid? do
       conn
       |> assign(:permit_mode, "admin")
     else

@@ -24,6 +24,7 @@ defmodule Exolyte.UserDB do
     user_color = Enum.random(@name_colors)
 
     now = DateTime.utc_now()
+
     user_default = %{
       blocked_channels: MapSet.new(),
       unifiedpush_endpoint: nil,

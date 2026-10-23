@@ -5,6 +5,7 @@ defmodule ExolyteWeb.UserLive.Show do
 
   def mount(_params, session, socket) do
     user_id = session["user_id"]
+
     channels =
       Exolyte.ChannelDB.channels_for_user(user_id)
       |> Enum.map(fn channel ->
@@ -32,6 +33,7 @@ defmodule ExolyteWeb.UserLive.Show do
     settings = Exolyte.Settings.get()
 
     notifications_map = Exolyte.Notification.get(user_id)
+
     notifications =
       notifications_map
       |> Map.values()
@@ -39,7 +41,9 @@ defmodule ExolyteWeb.UserLive.Show do
       |> Enum.sort_by(& &1.timestamp, :desc)
 
     last_notification_read_at = Map.get(user, :last_notification_read_at, 0)
-    unread_count = Enum.count(notifications, fn item -> item.timestamp > last_notification_read_at end)
+
+    unread_count =
+      Enum.count(notifications, fn item -> item.timestamp > last_notification_read_at end)
 
     {:ok,
      socket
@@ -59,7 +63,7 @@ defmodule ExolyteWeb.UserLive.Show do
      |> assign(:channel_error, nil)
      |> assign(:current_user, user)
      |> assign(:vapid_public_key, Exolyte.WebPush.get_vapid_details().public_key)
-     |> assign(:page_title, "MyPage - #{ Map.get(settings, "instance_name") || "Exolyte"}")}
+     |> assign(:page_title, "MyPage - #{Map.get(settings, "instance_name") || "Exolyte"}")}
   end
 
   def render(assigns) do
@@ -338,7 +342,13 @@ defmodule ExolyteWeb.UserLive.Show do
 
     theme = if MapSet.member?(@themes, user_theme), do: user_theme, else: "kawaiifb"
 
-    newsetting = %{display_name: display_name, theme: theme, notify_all_dms: notify_all_dms, play_sound: play_sound}
+    newsetting = %{
+      display_name: display_name,
+      theme: theme,
+      notify_all_dms: notify_all_dms,
+      play_sound: play_sound
+    }
+
     Exolyte.UserDB.update_user(socket.assigns.user_id, newsetting)
 
     current_user = Map.merge(socket.assigns.current_user, newsetting)
@@ -352,11 +362,11 @@ defmodule ExolyteWeb.UserLive.Show do
   def handle_event("update_unifiedpush", %{"endpoint" => endpoint}, socket) do
     endpoint = String.trim(endpoint)
     endpoint = if endpoint == "", do: nil, else: endpoint
-    
+
     Exolyte.UserDB.update_user(socket.assigns.user_id, %{unifiedpush_endpoint: endpoint})
-    
+
     current_user = Map.put(socket.assigns.current_user, :unifiedpush_endpoint, endpoint)
-    
+
     {:noreply, assign(socket, :current_user, current_user)}
   end
 
@@ -446,8 +456,8 @@ defmodule ExolyteWeb.UserLive.Show do
     uuid = Exolyte.UserDB.create_user_link()
     host = ExolyteWeb.Endpoint.url()
     link = "#{host}/register/#{uuid}"
-    
-    qr_svg = 
+
+    qr_svg =
       link
       |> EQRCode.encode()
       |> EQRCode.svg(width: 150)
@@ -455,23 +465,30 @@ defmodule ExolyteWeb.UserLive.Show do
     {:noreply, assign(socket, generated_link: link, generated_qr: qr_svg)}
   end
 
-  def handle_event("create_channel", %{"channel_id" => channel_id, "channel_name" => channel_name}, socket) do
+  def handle_event(
+        "create_channel",
+        %{"channel_id" => channel_id, "channel_name" => channel_name},
+        socket
+      ) do
     user_id = socket.assigns.user_id
+
     if Regex.match?(~r/^[a-z][a-z0-9_]{4,30}[a-z0-9]$/, channel_id) do
       # check if exists
       case Exolyte.ChannelDB.get_channel(channel_id) do
         nil ->
           safe_name = String.slice(String.trim(channel_name), 0, 32)
+
           case Exolyte.ChannelDB.create_channel(channel_id, safe_name) do
             :ok ->
               Exolyte.ChannelDB.set_chop(channel_id, user_id)
               Exolyte.ChannelDB.add_user(channel_id, user_id)
-              
+
               {:noreply, push_navigate(socket, to: "/channel/#{channel_id}")}
-              
+
             {:error, _} ->
               {:noreply, assign(socket, channel_error: gettext("Failed to create channel."))}
           end
+
         _ ->
           {:noreply, assign(socket, channel_error: gettext("Channel already exists."))}
       end
@@ -479,13 +496,19 @@ defmodule ExolyteWeb.UserLive.Show do
       {:noreply, assign(socket, channel_error: gettext("Invalid channel ID format."))}
     end
   end
+
   def handle_event("open_notifications", _, socket) do
     timestamp = System.os_time(:second)
     Exolyte.UserDB.update_user(socket.assigns.user_id, %{last_notification_read_at: timestamp})
-    
+
     current_user = Map.put(socket.assigns.current_user, :last_notification_read_at, timestamp)
-    
-    {:noreply, assign(socket, unread_count: 0, last_notification_read_at: timestamp, current_user: current_user)}
+
+    {:noreply,
+     assign(socket,
+       unread_count: 0,
+       last_notification_read_at: timestamp,
+       current_user: current_user
+     )}
   end
 
   def handle_event("clear_notifications", _, socket) do

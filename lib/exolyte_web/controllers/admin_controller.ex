@@ -121,5 +121,4 @@ defmodule ExolyteWeb.AdminController do
         |> halt
     end
   end
-
 end

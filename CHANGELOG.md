@@ -2,6 +2,11 @@
 
 # version 1
 
+## v1.2.1 (2026-10-23)
+
+* Library update
+* Fix admin API null check
+
 ## v1.2.0 (2026-07-06)
 
 * Add play sound setting (user, default true)

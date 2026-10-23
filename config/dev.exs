@@ -77,5 +77,4 @@ config :phoenix_live_view,
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 
-config :exolyte, :admin,
-  token: "NfYWkx1p67Df5e5/nC+fabfEWAlqlnhKfufScTykqOaNkBEVut3TEqnuC8sktqjh"
+config :exolyte, :admin, token: "NfYWkx1p67Df5e5/nC+fabfEWAlqlnhKfufScTykqOaNkBEVut3TEqnuC8sktqjh"

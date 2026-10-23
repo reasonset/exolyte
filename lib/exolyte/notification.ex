@@ -32,7 +32,10 @@ defmodule Exolyte.Notification do
   end
 
   def message_received(user_id, channel_id, timestamp) do
-    GenServer.cast(Exolyte.NotificationServer, {:message_received, user_id, channel_id, timestamp})
+    GenServer.cast(
+      Exolyte.NotificationServer,
+      {:message_received, user_id, channel_id, timestamp}
+    )
   end
 
   def mention(user_id, channel_id, content) do
