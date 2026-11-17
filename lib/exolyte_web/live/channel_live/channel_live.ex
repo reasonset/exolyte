@@ -318,7 +318,7 @@ defmodule ExolyteWeb.ChannelLive do
         "content" => String.trim(content)
       }
 
-      message = format_message(Exolyte.ChannelLog.append_message(socket.assigns.channel_id, chat))
+      message = format_message(ChannelLogManager.update(socket.assigns.channel_id, chat))
 
       Phoenix.PubSub.broadcast(
         Exolyte.PubSub,
