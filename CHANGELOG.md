@@ -2,6 +2,10 @@
 
 # version 1
 
+## v1.2.2 (2026-11-18)
+
+* Fix to use LogManager on chat submit
+
 ## v1.2.1 (2026-10-23)
 
 * Library update
